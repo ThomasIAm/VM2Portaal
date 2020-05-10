@@ -32,7 +32,8 @@ if (empty($_SESSION['klantnaam']) || empty($_POST['omgeving']) || empty($_POST['
 			break;
 	}
 
-	$cmdRes = shell_exec($cmd);
+	chdir('/home/vagrant/VM2/klanten/testklant/test/');
+	$cmdRes = shell_exec('export VAGRANT_HOME=/home/vagrant/ && ' . $cmd);
 }
 ?>
 
