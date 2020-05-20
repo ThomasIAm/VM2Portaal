@@ -102,7 +102,7 @@ if (empty($_SESSION['customerName'])) {
             <?php
             if (!empty($ENVIRONMENT)) {
               echo "<form action=\"/processing/machineAction.php\" method=\"post\">
-                      <input type=\"hidden\" name=\"env\" value=\"<?php echo ${ENVIRONMENT} ?>\">
+                      <input type=\"hidden\" name=\"env\" value=\"${ENVIRONMENT}\">
                       <div class=\"btn-group mr-2\">
                         <input type=\"submit\" class=\"btn btn-sm btn-outline-success\" name=\"cmd\" value=\"Up\">
                         <input type=\"submit\" class=\"btn btn-sm btn-outline-secondary\" name=\"cmd\" value=\"Down\">

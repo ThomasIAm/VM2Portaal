@@ -35,8 +35,10 @@ if (empty($_SESSION['customerName'])) {
 	Redirect('/account/signin.php');
 } elseif (empty($_POST['cmd'])) {
 	// No action was given, send to dash
-	// Redirect('/dashboard/index.php');
+	Redirect('/dashboard/index.php');
 } elseif (!empty($_POST['vmName'])) {
+	$CUSTOMERNAME = $_SESSION['customerName'];
+
 	switch ($_POST['cmd']) {
 		case 'Up':
 			ShellExec("vagrant up ${_POST['vmName']}");
@@ -48,7 +50,7 @@ if (empty($_SESSION['customerName'])) {
 
 		case 'Delete':
 			ShellExec("vagrant destroy ${_POST['vmName']} --force");
-			$file = "${BASEDIR}klanten/testklant/dev/vagrant_hosts.yml";
+			$file = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml";
 			$hosts = yaml_parse_file($file);
 			$vmKey = FindVmKey($hosts, $_POST['vmName']);
 			if ($vmKey !== null) {
@@ -63,6 +65,8 @@ if (empty($_SESSION['customerName'])) {
 			break;
 	}
 } else {
+	$CUSTOMERNAME = $_SESSION['customerName'];
+
 	switch ($_POST['cmd']) {
 		case 'Up':
 			ShellExec("vagrant up");
@@ -74,6 +78,7 @@ if (empty($_SESSION['customerName'])) {
 
 		case 'Delete':
 			ShellExec("vagrant destroy --force");
+			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml", "");
 			break;
 
 		case 'Run Ansible':
@@ -86,7 +91,6 @@ if (empty($_SESSION['customerName'])) {
 			break;
 	}
 }
-$CUSTOMERNAME = $_SESSION['customerName'];
 ?>
 
 <!doctype html>
