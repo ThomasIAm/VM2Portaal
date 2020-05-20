@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+$BASEDIR = '/home/vagrant/VM2/';
+
 // Redirect to url
 function Redirect(string $url)
 {
@@ -24,9 +26,9 @@ function GetHosts(string $env = null)
     return $files;
   } else {
     // Set the hosts file path
-    $file = "${BASEDIR}klanten/${CUSTOMERNAME}/${env}/vagrant_hosts.yml";
+    $file = yaml_parse_file("${BASEDIR}klanten/${CUSTOMERNAME}/${env}/vagrant_hosts.yml");
     // Parse the YAML file to a PHP array
-    return yaml_parse_file($file);
+    return array($file);
   }
 }
 
@@ -123,6 +125,8 @@ if (empty($_SESSION['customerName'])) {
             </button>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="environmentDropdownMenuButton">
               <?php
+              echo "<a class=\"dropdown-item\" href=\"?env=\">All</a>";
+              echo "<div class=\"dropdown-divider\"></div>";
               foreach ($ENVIRONMENTS as $env) {
                 echo "<a class=\"dropdown-item\" href=\"?env=${env}\">${env}</a>";
               }
@@ -147,25 +151,27 @@ if (empty($_SESSION['customerName'])) {
             </thead>
             <tbody>
               <?php
-              $hosts = (empty($ENVIRONMENT)) ? GetHosts() : GetHosts($ENVIRONMENT);
-              foreach ($hosts as $host) {
-                echo "<tr>
-                        <td>${host['env']}</td>
-                        <td>${host['name']}</td>
-                        <td>${host['os']}</td>
-                        <td>${host['ip']}</td>
-                        <td>${host['ram']}</td>
-                        <td>
-                          <form action=\"/processing/machineAction.php\" method=\"post\">
-                            <input type=\"hidden\" name=\"vmName\" value=\"${host['name']}\">
-                            <input type=\"hidden\" name=\"env\" value=\"${host['env']}\">
+              $hosts_array = (empty($ENVIRONMENT)) ? GetHosts() : GetHosts($ENVIRONMENT);
+              foreach ($hosts_array as $hosts) {
+                foreach ($hosts as $host) {
+                  echo "<tr>
+                          <td>${host['env']}</td>
+                          <td>${host['name']}</td>
+                          <td>${host['os']}</td>
+                          <td>${host['ip']}</td>
+                          <td>${host['ram']}</td>
+                          <td>
+                            <form action=\"/processing/machineAction.php\" method=\"post\">
+                              <input type=\"hidden\" name=\"vmName\" value=\"${host['name']}\">
+                              <input type=\"hidden\" name=\"env\" value=\"${host['env']}\">
 
-                            <input type=\"submit\" class=\"btn btn-outline-success btn-sm\" title=\"Bring machine up\" name=\"cmd\" value=\"Up\">
-                            <input type=\"submit\" class=\"btn btn-outline-secondary btn-sm\" title=\"Take machine down\" name=\"cmd\" value=\"Down\">
-                            <input type=\"submit\" class=\"btn btn-outline-danger btn-sm\" title=\"Delete machine\" name=\"cmd\" value=\"Delete\">
-                          </form>
-                        </td>
-                      </tr>";
+                              <input type=\"submit\" class=\"btn btn-outline-success btn-sm\" title=\"Bring machine up\" name=\"cmd\" value=\"Up\">
+                              <input type=\"submit\" class=\"btn btn-outline-secondary btn-sm\" title=\"Take machine down\" name=\"cmd\" value=\"Down\">
+                              <input type=\"submit\" class=\"btn btn-outline-danger btn-sm\" title=\"Delete machine\" name=\"cmd\" value=\"Delete\">
+                            </form>
+                          </td>
+                        </tr>";
+                }
               }
               ?>
             </tbody>
@@ -174,7 +180,7 @@ if (empty($_SESSION['customerName'])) {
           <form class="form-inline" action="/processing/addEnv.php" method="post">
             <div class="form-group">
               <label class="sr-only" for="inputEnvName">Environment Name</label>
-              <input type="text" class="form-control mb-2 mx-sm-2" id="inputEnvName" placeholder="Environment Name">
+              <input type="text" class="form-control mb-2 mx-sm-2" id="inputEnvName" name="inputEnvName" placeholder="Environment Name">
 
               <button type="submit" class="btn btn-primary mb-2">Create</button>
             </div>
