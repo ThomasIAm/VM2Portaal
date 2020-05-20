@@ -9,7 +9,7 @@
 		<label for="klantnaam">Klantnaam:</label>
 		<input type="text" id="klantnaam" name="klantnaam"><br><br>
 
-		<input type="submit">
+		<input type="submit" value="Login">
 	</form>
 </body>
 

@@ -5,7 +5,7 @@
 </head>
 
 <body>
-	<form action="/account" method="post">
+	<form action="/account/index.php" method="post">
 		<label for="klantnaam">Klantnaam:</label>
 		<input type="text" name="klantnaamNieuw" id="klantnaam">
 

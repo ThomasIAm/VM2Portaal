@@ -12,15 +12,16 @@ if (empty($_SESSION['klantnaam']) || empty($_POST['omgeving']) || empty($_POST['
 } else {
 	switch ($_POST['cmd']) {
 		case 'v_up':
-			$cmd = 'vagrant up';
+			$cmd = 'vagrant/up.sh testklant test';
 			break;
 
 		case 'v_halt':
-			$cmd = 'vagrant halt';
+			// $cmd = 'vagrant halt';
+			$cmd = 'vagrant/halt.sh testklant test';
 			break;
 
 		case 'v_destroy':
-			$cmd = 'vagrant destroy';
+			$cmd = 'vagrant destroy --force';
 			break;
 
 		case 'a-p_p':
@@ -32,8 +33,10 @@ if (empty($_SESSION['klantnaam']) || empty($_POST['omgeving']) || empty($_POST['
 			break;
 	}
 
-	chdir('/home/vagrant/VM2/klanten/testklant/test/');
-	$cmdRes = shell_exec('export VAGRANT_HOME=/home/vagrant/ && ' . $cmd);
+	// chdir("/home/vagrant/VM2/klanten/testklant/test/");
+	chdir("../scripts");
+	// $cmdRes = shell_exec('export VAGRANT_HOME=/home/vagrant/.vagrant.d/ && export HOME=/home/vagrant/ && VAGRANT_CWD=/home/vagrant/VM2/klanten/testklant/test/ && ' . $cmd);
+	$cmdRes = shell_exec($cmd);
 }
 ?>
 
