@@ -1,147 +1,91 @@
 <?php
 session_start();
 
-// Cloud base folder; where 'klanten/' is located
-$BASEDIR = '/home/vagrant/VM2/';
-
 // Redirect to url
 function Redirect(string $url)
 {
-	header('Location: ' . $url);
-	die();
+  header('Location: ' . $url);
+  die();
 }
 
-// Copy directory from src to dst
-function CopyDir(string $src, $dst)
-{
-	$dir = opendir($src);
-	// Create dst dir if not existst
-	@mkdir($dst);
-
-	// Copy dirs and files recursively
-	while ($file = readdir($dir)) {
-		if (($file != '.') && ($file != '..')) {
-			if (is_dir($src . '/' . $file)) {
-				CopyDir($src . '/' . $file, $dst . '/' . $file);
-			} else {
-				copy($src . '/' . $file, $dst . '/' . $file);
-			}
-		}
-	}
-
-	closedir($dir);
-}
-
-// Delete directory recursively
-function DeleteDir(string $dir)
-{
-	if (is_dir($dir)) {
-		$dir_handle = opendir($dir);
-	}
-	if (!$dir_handle) {
-		return false;
-	}
-	while ($file = readdir($dir_handle)) {
-		if ($file != "." && $file != "..") {
-			if (!is_dir($dir . "/" . $file)) {
-				// Delete files
-				unlink($dir . "/" . $file);
-			} else {
-				// Delete subdirectories
-				DeleteDir($dir . "/" . $file);
-			}
-		}
-	}
-	closedir($dir_handle);
-	rmdir($dir);
-}
-
-// Replace text in file
-function ReplaceText(string $old, string $new, string $file) {
-	$str = file_get_contents($file);
-	$str = str_replace($old, $new, $str);
-	file_put_contents($file, $str);
-}
-
-// Log user out and send to root
-if (!empty($_POST['clearsession'])) {
-	session_destroy();
-	Redirect('/');
-}
-
-if (empty($_SESSION['klantnaam']) && empty($_POST['klantnaam'])) {
-	// User is not logged in and not logging in
-	if (!empty($_POST['klantnaamNieuw'])) {
-		// User is new here
-		// Create folder for new user
-		@mkdir($BASEDIR . '/klanten/' . $_POST['klantnaamNieuw']);
-		// Log user in and refresh page
-		$_SESSION['klantnaam'] = $_POST['klantnaamNieuw'];
-		header('Refresh: 0');
-	} else {
-		// User is just not logged in; so, send to login
-		Redirect('login.php');
-	}
-} else if (empty($_SESSION['klantnaam'])) {
-	// User is not logged in, but is logging in; so, log user in
-	$_SESSION['klantnaam'] = $_POST['klantnaam'];
-}
-
-if (!empty($_SESSION['klantnaam'])) {
-	// User is logged in
-	if (!empty($_POST['omgeving'])) {
-		// A new environment has to be created
-		$omgevingDir = $BASEDIR . 'klanten/' . $_SESSION['klantnaam'] . '/' . $_POST['omgeving'];
-		// Copy template envirionment
-		CopyDir($BASEDIR . 'templates/voorbeeld_klant/voorbeeld_omgeving/', $omgevingDir);
-		shell_exec("ssh-keygen -q -f ${omgevingDir}/${_SESSION['klantnaam']}-${_POST['omgeving']}-id_rsa -N \"\"");
-		// Replace variables in files
-		ReplaceText('%klant%', $_SESSION['klantnaam'], $omgevingDir . '/ansible.cfg');
-		ReplaceText('%omgeving%', $_POST['omgeving'], $omgevingDir . '/ansible.cfg');
-		ReplaceText('%klant%', $_SESSION['klantnaam'], $omgevingDir . '/Vagrantfile');
-		ReplaceText('%omgeving%', $_POST['omgeving'], $omgevingDir . '/Vagrantfile');
-	} else if (!empty($_POST['verwijderOmgeving']) && !empty($_POST['verwijderOmgevingNaam'])) {
-		// An environment needs to be deleted
-		DeleteDir($BASEDIR . 'klanten/' . $_SESSION['klantnaam'] . '/' . $_POST['verwijderOmgevingNaam'] . '/');
-	}
-
-	// Create array of environments
-	$omgevingen = array_diff(scandir($BASEDIR . 'klanten/' . $_SESSION['klantnaam']), array('..', '.'));
+if (empty($_SESSION['customerName'])) {
+  // User is not signed in, send to signin
+  Redirect('/account/signin.php');
+} else {
+  $CUSTOMERNAME = $_SESSION['customerName'];
 }
 ?>
-<html>
+
+<!doctype html>
+<html lang="en">
 
 <head>
-	<title>Account - VM2 Portaal</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Very simple Self-Service Portal for school project for Virtualization Methods 2">
+  <meta name="author" content="Thomas van den Nieuwenhoff">
+  <title>Account - VM2 Portaal</title>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+  <!-- Custom styles -->
+  <link href="/styles/account.css" rel="stylesheet">
 </head>
 
 <body>
-	<?php echo $_SESSION['klantnaam'] ?>
+  <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#"><?php echo $CUSTOMERNAME ?></a>
+    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a class="nav-link" href="/processing/signout.php">Sign out</a>
+      </li>
+    </ul>
+  </nav>
 
-	<form action="" method="post">
-		<input type="submit" name="clearsession" value="Logout">
-	</form>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+        <div class="sidebar-sticky pt-3">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link active" href="#">
+                <span data-feather="user"></span>
+                Account <span class="sr-only">(current)</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/dashboard/index.php">
+                <span data-feather="cloud"></span>
+                Dashboard
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
 
-	<form action="/account/delete.php" method="post">
-		<input type="submit" name="verwijderKlant" id="" value="Verwijder klant" style="background: red">
-	</form>
-
-	<hr>
-	<ul>
-		<?php
-		foreach ($omgevingen as $omgeving) {
-			echo "<li><a href='/dashboard?omgeving=$omgeving'>$omgeving</a></li>";
-		}
-		?>
-	</ul>
-
-	<hr>
-	<form action="" method="post">
-		<label for="omgeving">Nieuwe omgevingnaam:</label>
-		<input type="text" name="omgeving" id="omgeving">
-
-		<input type="submit" name="" id="" value="Creëer omgeving">
-	</form>
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+          <h1 class="h2">Account</h1>
+        </div>
+        <ul class="list-group">
+          <li class="list-group-item">
+            <h3 class="h3">Delete account</h3>
+            <p class="text-danger float-left">CAUTION! This will delete your account with all its environments and machines!</p>
+            <a class="btn btn-danger float-right" href="/processing/deleteAccount.php" role="button">Delete</a>
+          </li>
+        </ul>
+      </main>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script>
+  <script src="/scripts/dashboard.js"></script>
 </body>
 
 </html>

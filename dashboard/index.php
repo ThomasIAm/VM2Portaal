@@ -1,166 +1,193 @@
 <?php
 session_start();
 
-// Cloud base folder; where 'klanten/' is located
-$BASEDIR = '/home/vagrant/VM2/';
-
 // Redirect to url
-function Redirect(string $url) {
-	header('Location: ' . $url);
-	die();
+function Redirect(string $url)
+{
+  header('Location: ' . $url);
+  die();
 }
 
 // Get existing hosts from vagrant_hosts.yml
-function GetHosts() {
-	global $BASEDIR;
-	// Set the hosts file path
-	$file = "${BASEDIR}klanten/${_SESSION['klantnaam']}/${_GET['omgeving']}/vagrant_hosts.yml";
-	// Parse the YAML file to a PHP array
-	return yaml_parse_file($file);
+function GetHosts(string $env = null)
+{
+  global $BASEDIR;
+  global $CUSTOMERNAME;
+  global $ENVIRONMENTS;
+
+  if (empty($env)) {
+    $files = array();
+    foreach ($ENVIRONMENTS as $env) {
+      $file = yaml_parse_file("${BASEDIR}klanten/${CUSTOMERNAME}/${env}/vagrant_hosts.yml");
+      array_push($files, $file);
+    }
+    return $files;
+  } else {
+    // Set the hosts file path
+    $file = "${BASEDIR}klanten/${CUSTOMERNAME}/${env}/vagrant_hosts.yml";
+    // Parse the YAML file to a PHP array
+    return yaml_parse_file($file);
+  }
 }
 
-function EmitYaml($hosts) {
-	global $BASEDIR;	
-	// Set the hosts file path
-	$file = "${BASEDIR}klanten/${_SESSION['klantnaam']}/${_GET['omgeving']}/vagrant_hosts.yml";
-	// Write the new YAML file out
-	yaml_emit_file($file, $hosts);
-}
+if (empty($_SESSION['customerName'])) {
+  // User is not signed in, send to signin
+  Redirect('/account/signin.php');
+} else {
+  $CUSTOMERNAME = $_SESSION['customerName'];
+  $ENVIRONMENT = $_GET['env'];
 
-function ShellExec(string $cmd) {
-	global $BASEDIR;
-
-	chdir("${BASEDIR}${_SESSION['klantnaam']}/${_POST['omgeving']}");
-	shell_exec('export VAGRANT_HOME=/home/vagrant/ && ' . $cmd);
-}
-
-if (!empty($_POST['clearsession'])) {
-	session_destroy();
-	Redirect('/');
-}
-
-if (empty($_SESSION['klantnaam']) || empty($_GET['omgeving'])) {
-	Redirect('/');
-} elseif (!empty($_POST['newvm'])) {
-	// A new machine must be created
-	$hosts = GetHosts();
-	// Create an array with the new host
-	$newhost = array(array('name' => "${_SESSION['klantnaam']}-${_GET['omgeving']}-${_POST['hostname']}", 'os' => $_POST['os'], 'ip' => $_POST['ip'], 'ram' => $_POST['ram']));
-	
-	if (empty($hosts)) {
-		// If there are no hosts already, set the hosts to this new host
-		$hosts = $newhost;
-	} else {
-		// If there are hosts already, merge the arrays
-		$hosts = array_merge($hosts, $newhost);
-	}
-
-	// Write the new YAML file out
-	EmitYaml($hosts);
-} elseif (!empty($_POST['vmname'])) {
-	if (!empty($_POST['vmup'])) {
-		ShellExec("vagrant/up.sh ${_POST['vmname']}");
-	} elseif (!empty($_POST['vmdown'])) {
-		ShellExec("vagrant/halt.sh ${_POST['vmname']}");
-	} elseif (!empty($_POST['delvm'])) {
-		ShellExec("vagrant/destroy.sh ${_POST['vmname']}");
-	}
+  // Create array of environments
+  $ENVIRONMENTS = array_diff(scandir("${BASEDIR}klanten/${CUSTOMERNAME}"), array('..', '.'));
 }
 ?>
 
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
-	<title><?php echo $_GET['omgeving'] ?> - Dashboard - VM2 Portaal</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Very simple Self-Service Portal for school project for Virtualization Methods 2">
+  <meta name="author" content="">
+  <title>Dashboard - VM2 Portaal</title>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+  <!-- Custom styles -->
+  <link href="/styles/dashboard.css" rel="stylesheet">
 </head>
 
 <body>
-	<?php echo $_SESSION['klantnaam'] ?>
+  <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#"><?php echo $CUSTOMERNAME ?></a>
+    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <ul class="navbar-nav px-3">
+      <li class="nav-item text-nowrap">
+        <a class="nav-link" href="/processing/signout.php">Sign out</a>
+      </li>
+    </ul>
+  </nav>
 
-	<form action="" method="post">
-		<input type="submit" name="clearsession" value="Logout">
-	</form>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+        <div class="sidebar-sticky pt-3">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link" href="/account/index.php">
+                <span data-feather="user"></span>
+                Account
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="#">
+                <span data-feather="cloud"></span>
+                Dashboard <span class="sr-only">(current)</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
 
-	<hr>
-	<?php echo $_GET['omgeving'] ?>
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+          <h1 class="h2">Dashboard</h1>
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <?php
+            if (!empty($ENVIRONMENT)) {
+              echo "<form action=\"/processing/machineAction.php\" method=\"post\">
+                      <input type=\"hidden\" name=\"env\" value=\"<?php echo ${ENVIRONMENT} ?>\">
+                      <div class=\"btn-group mr-2\">
+                        <input type=\"submit\" class=\"btn btn-sm btn-outline-success\" name=\"cmd\" value=\"Up\">
+                        <input type=\"submit\" class=\"btn btn-sm btn-outline-secondary\" name=\"cmd\" value=\"Down\">
+                        <input type=\"submit\" class=\"btn btn-sm btn-outline-danger\" name=\"cmd\" value=\"Delete\">
+                        <input type=\"submit\" class=\"btn btn-sm btn-outline-info\" name=\"cmd\" value=\"Run Ansible\">
+                        <a class=\"btn btn-sm btn-success\" href=\"/dashboard/addHost.php?env=${ENVIRONMENT}\" role=\"button\"><span data-feather=\"plus\"></span> Add Host</a>
+                        <a class=\"btn btn-sm btn-danger\" href=\"/processing/deleteEnv.php?env=${ENVIRONMENT}\" role=\"button\"><span data-feather=\"minus\"></span> Delete Environment</a>
+                      </div>
+                    </form>";
+            }
+            ?>
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="environmentDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span data-feather="layers"></span>
+              <?php if (empty($_GET['env'])) {
+                echo "Environments";
+              } else {
+                echo $_GET['env'];
+              }
+              ?>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="environmentDropdownMenuButton">
+              <?php
+              foreach ($ENVIRONMENTS as $env) {
+                echo "<a class=\"dropdown-item\" href=\"?env=${env}\">${env}</a>";
+              }
+              if (empty($ENVIRONMENTS)) {
+                echo "<h6 class=\"dropdown-header\">No environments found</h6>";
+              }
+              ?>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>Environment</th>
+                <th>Hostname</th>
+                <th>OS</th>
+                <th>IP</th>
+                <th>RAM</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php
+              $hosts = (empty($ENVIRONMENT)) ? GetHosts() : GetHosts($ENVIRONMENT);
+              foreach ($hosts as $host) {
+                echo "<tr>
+                        <td>${host['env']}</td>
+                        <td>${host['name']}</td>
+                        <td>${host['os']}</td>
+                        <td>${host['ip']}</td>
+                        <td>${host['ram']}</td>
+                        <td>
+                          <form action=\"/processing/machineAction.php\" method=\"post\">
+                            <input type=\"hidden\" name=\"vmName\" value=\"${host['name']}\">
+                            <input type=\"hidden\" name=\"env\" value=\"${host['env']}\">
 
-	<form action="/account">
-		<input type="submit" name="" id="" value="Verander omgeving">
-	</form>
+                            <input type=\"submit\" class=\"btn btn-outline-success btn-sm\" title=\"Bring machine up\" name=\"cmd\" value=\"Up\">
+                            <input type=\"submit\" class=\"btn btn-outline-secondary btn-sm\" title=\"Take machine down\" name=\"cmd\" value=\"Down\">
+                            <input type=\"submit\" class=\"btn btn-outline-danger btn-sm\" title=\"Delete machine\" name=\"cmd\" value=\"Delete\">
+                          </form>
+                        </td>
+                      </tr>";
+              }
+              ?>
+            </tbody>
+          </table>
+          <hr>
+          <form class="form-inline" action="/processing/addEnv.php" method="post">
+            <div class="form-group">
+              <label class="sr-only" for="inputEnvName">Environment Name</label>
+              <input type="text" class="form-control mb-2 mx-sm-2" id="inputEnvName" placeholder="Environment Name">
 
-	<form action="/account/index.php" method="post">
-		<input type="hidden" name="verwijderOmgevingNaam" id="" value="<?php echo $_GET['omgeving'] ?>">
-
-		<input type="submit" name="verwijderOmgeving" id="" value="Verwijder omgeving" style="background: red">
-	</form>
-
-	<?php
-	$hosts = GetHosts();
-	foreach ($hosts as $host) {
-		echo   "<div style=\"border: .25em solid black\">
-					<h4>${host['name']}</h4>
-					<p>OS: ${host['os']}</p>
-					<p>IP: ${host['ip']}</p>
-					<p>RAM: ${host['ram']} MB</p>
-					<form action=\"?omgeving=${_GET['omgeving']}\" method=\"post\">
-						<input type=\"hidden\" name=\"vmname\" value=\"${host['name']}\">
-
-						<input type=\"submit\" name=\"vmup\" value=\"Up\" style=\"background: green\">
-						<input type=\"submit\" name=\"vmdown\" value=\"Down\">
-						<input type=\"submit\" name=\"delvm\" value=\"Delete\" style=\"background: red\">
-					</form>
-				</div>";
-	}
-	?>
-
-	<hr>
-	<form action="/dashboard/shell_exec.php" method="post">
-		<input type="hidden" name="omgeving" id="" value="<?php echo $_GET['omgeving'] ?>">
-
-		<label for="">Kies een commando:</label><br>
-		<input type="radio" name="cmd" id="v_up" value="v_up">vagrant up<br>
-		<input type="radio" name="cmd" id="v_halt" value="v_halt">vagrant halt<br>
-		<input type="radio" name="cmd" id="v_destroy" value="v_destroy">vagrant destroy<br>
-		<input type="radio" name="cmd" id="a-p_p" value="a-p_p">ansible-playbook playbook.yml<br>
-
-		<br>
-		<input type="submit" name="" id="" value="Voer uit">
-	</form>
-
-	<hr>
-	<h3>Nieuwe machine</h3>
-	<form action="?omgeving=<?php echo $_GET['omgeving'] ?>" method="post">
-		<label for="type">Type:</label>
-		<select id="type" name="type">
-			<option value="db">Databaseserver</option>
-			<option value="lb">Loadbalancer</option>
-			<option value="web">Webserver</option>
-		</select>
-
-		<br>
-		<label for="hostname">Hostname: <?php echo "${_SESSION['klantnaam']}-${_GET['omgeving']}-" ?></label>
-		<input type="text" name="hostname" id="hostname" placeholder="web01">
-
-		<br>
-		<label for="os">OS:</label>
-		<input type="text" name="os" id="os" placeholder="ubuntu/bionic64">
-
-		<!-- When a database is used to store customer data, their id could be used to generate a unique net -->
-		<!-- <br>
-		<label for="ip">IP: <?php //echo "10.{id from database}.0." ?></label>
-		<input type="number" name="ip" id="ip" placeholder="10"> -->
-		<br>
-		<label for="ip">IP:</label>
-		<input type="text" name="ip" id="ip" placeholder="10.1.0.11">
-
-		<br>
-		<label for="ram">RAM:</label>
-		<input type="number" name="ram" id="ram" placeholder="512">
-		<label>MB</label>
-
-		<br><br>
-		<input type="submit" name="newvm" value="Rol uit">
-	</form>
+              <button type="submit" class="btn btn-primary mb-2">Create</button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script>
+  <script src="/scripts/dashboard.js"></script>
 </body>
 
 </html>
