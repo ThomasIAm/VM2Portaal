@@ -17,8 +17,17 @@ function ShellExec(string $cmd)
 	global $BASEDIR;
 	global $RES;
 
-	chdir("${BASEDIR}${_SESSION['customerName']}/${_POST['env']}/");
+	chdir("${BASEDIR}klanten/${_SESSION['customerName']}/${_POST['env']}/");
 	$RES = shell_exec('export VAGRANT_HOME=/home/vagrant/.vagrant.d && export HOME=/home/vagrant && ' . $cmd);
+}
+
+function FindVmKey($hosts, $vmName)
+{
+	foreach ($hosts as $key => $host) {
+		if ($host['name'] === $vmName) {
+			return $key;
+		}
+	}
 }
 
 if (empty($_SESSION['customerName'])) {
@@ -30,15 +39,22 @@ if (empty($_SESSION['customerName'])) {
 } elseif (!empty($_POST['vmName'])) {
 	switch ($_POST['cmd']) {
 		case 'Up':
-			ShellExec("vagrant up ${_POST['vmname']}");
+			ShellExec("vagrant up ${_POST['vmName']}");
 			break;
 
 		case 'Down':
-			ShellExec("vagrant halt ${_POST['vmname']}");
+			ShellExec("vagrant halt ${_POST['vmName']}");
 			break;
 
 		case 'Delete':
-			ShellExec("vagrant destroy ${_POST['vmname']} --force");
+			ShellExec("vagrant destroy ${_POST['vmName']} --force");
+			$file = "${BASEDIR}klanten/testklant/dev/vagrant_hosts.yml";
+			$hosts = yaml_parse_file($file);
+			$vmKey = FindVmKey($hosts, $_POST['vmName']);
+			if ($vmKey !== null) {
+				array_splice($hosts, $vmKey, 1);
+				yaml_emit_file($file, $hosts);
+			}
 			break;
 
 		default:
@@ -128,6 +144,7 @@ $CUSTOMERNAME = $_SESSION['customerName'];
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
 					<h1 class="h2">Result</h1>
 				</div>
+
 				<pre><?php echo $RES ?></pre>
 			</main>
 		</div>
