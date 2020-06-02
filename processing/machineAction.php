@@ -21,7 +21,7 @@ function ShellExec(string $cmd)
 	$RES = shell_exec('export VAGRANT_HOME=/home/vagrant/.vagrant.d && export HOME=/home/vagrant && ' . $cmd);
 }
 
-function FindVmKey($hosts, $vmName)
+function FindVVmKey($hosts, $vmName)
 {
 	foreach ($hosts as $key => $host) {
 		if ($host['name'] === $vmName) {
@@ -50,13 +50,33 @@ if (empty($_SESSION['customerName'])) {
 
 		case 'Delete':
 			ShellExec("vagrant destroy ${_POST['vmName']} --force");
-			$file = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml";
-			$hosts = yaml_parse_file($file);
-			$vmKey = FindVmKey($hosts, $_POST['vmName']);
-			if ($vmKey !== null) {
-				array_splice($hosts, $vmKey, 1);
-				yaml_emit_file($file, $hosts);
+
+			$vFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml";
+			$vHosts = yaml_parse_file($vFile);
+			$vVmKey = FindVVmKey($vHosts, $_POST['vmName']);
+			if ($vVmKey !== null) {
+				array_splice($vHosts, $vVmKey, 1);
+				yaml_emit_file($vFile, $vHosts);
 			}
+
+			$aFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml";
+			$aHosts = yaml_parse_file($aFile);
+			switch ($_POST['type']) {
+				case 'db':
+					$group = "databaseservers";
+					break;
+				case 'lb':
+					$group = "loadbalancers";
+					break;
+				case 'web':
+					$group = 'webservers';
+					break;
+			}
+			unset($aHosts['all']['children'][$group]['hosts'][$_POST['vmName']]);
+			yaml_emit_file($aFile, $aHosts);
+			break;
+		case 'Run Ansible':
+			ShellExec("ansible-playbook playbook.yml -l ${_POST['vmName']}");
 			break;
 
 		default:
@@ -79,6 +99,7 @@ if (empty($_SESSION['customerName'])) {
 		case 'Delete':
 			ShellExec("vagrant destroy --force");
 			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml", "");
+			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml", "");
 			break;
 
 		case 'Run Ansible':

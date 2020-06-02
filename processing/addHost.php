@@ -11,27 +11,27 @@ function Redirect(string $url)
 }
 
 // Get existing hosts from vagrant_hosts.yml
-function GetHosts()
+function GetHosts($file)
 {
 	global $BASEDIR;
 	global $CUSTOMERNAME;
 	global $ENVIRONMENT;
 
 	// Set the hosts file path
-	$file = "${BASEDIR}klanten/${CUSTOMERNAME}/${ENVIRONMENT}/vagrant_hosts.yml";
+	$hostsFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${ENVIRONMENT}/${file}";
 	// Parse the YAML file to a PHP array
-	return yaml_parse_file($file);
+	return yaml_parse_file($hostsFile);
 }
 
-function EmitYaml($hosts)
+function EmitYaml($hosts, $file)
 {
 	global $BASEDIR;
 	global $CUSTOMERNAME;
 	global $ENVIRONMENT;
 
 	// Set the hosts file path
-	$file = "${BASEDIR}klanten/${CUSTOMERNAME}/${ENVIRONMENT}/vagrant_hosts.yml";
-	yaml_emit_file($file, $hosts);
+	$hostsFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${ENVIRONMENT}/${file}";
+	yaml_emit_file($hostsFile, $hosts);
 }
 
 if (empty($_SESSION['customerName'])) {
@@ -44,21 +44,66 @@ if (empty($_SESSION['customerName'])) {
 	// A new machine must be created
 	$ENVIRONMENT = $_GET['env'];
 	$CUSTOMERNAME = $_SESSION['customerName'];
-	$hosts = GetHosts();
+
+	// Gather Vagrant hosts
+	$vHosts = GetHosts('vagrant_hosts.yml');
 
 	//Create an array with the new host
-	$newhost = array(array('name' => "${CUSTOMERNAME}-${ENVIRONMENT}-${_POST['hostname']}", 'os' => $_POST['os'], 'ip' => $_POST['ip'], 'ram' => $_POST['ram'], 'env' => $ENVIRONMENT));
+	$newHostName = "${CUSTOMERNAME}-${ENVIRONMENT}-${_POST['hostname']}";
+	$newVHost = array(array(
+		'name' => $newHostName,
+		'os' => $_POST['os'],
+		'ip' => $_POST['ip'],
+		'ram' => $_POST['ram'],
+		'env' => $ENVIRONMENT,
+		'type' => $_POST['type']
+	));
 
-	if (empty($hosts)) {
+	if (empty($vHosts)) {
 		// If there are no hosts already, set the hosts to this new host
-		$hosts = $newhost;
+		$vHosts = $newVHost;
 	} else {
 		// If there are hosts already, merge the arrays
-		$hosts = array_merge($hosts, $newhost);
+		$vHosts = array_merge($vHosts, $newVHost);
 	}
 
 	// Write the new YAML file out
-	EmitYaml($hosts);
+	EmitYaml($vHosts, 'vagrant_hosts.yml');
+
+
+	// Gather Ansible hosts
+	$aHosts = GetHosts('hosts.yml');
+
+	// Set correct groups for types
+	switch ($_POST['type']) {
+		case 'db':
+			$newHostGroup = "databaseservers";
+			break;
+		case 'lb':
+			$newHostGroup = "loadbalancers";
+			break;
+		case 'web':
+			$newHostGroup = "webservers";
+			break;
+		default:
+			$newHostGroup = "unknown";
+			break;
+	}
+
+	// Create an array the new host
+	$newAHost = array($newHostName => array('ansible_host' => $_POST['ip']));
+
+	if (empty($aHosts['all']['children'][$newHostGroup])) {
+		// If there are no hosts already in this group, set the hosts to this new host
+		$aHosts['all']['children'][$newHostGroup]['hosts'] = $newAHost;
+	} else {
+		// If there are hosts already, merge the arrays
+		$test = $aHosts['all']['children'][$newHostGroup]['hosts'];
+		$aHosts['all']['children'][$newHostGroup]['hosts'] = array_merge($aHosts['all']['children'][$newHostGroup]['hosts'], $newAHost);
+	}
+
+	// Write the new YAML file out
+	EmitYaml($aHosts, 'hosts.yml');
 }
 
 // Host was created, send to dash

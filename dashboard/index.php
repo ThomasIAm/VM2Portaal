@@ -142,6 +142,7 @@ if (empty($_SESSION['customerName'])) {
             <thead>
               <tr>
                 <th>Environment</th>
+                <th>Type</th>
                 <th>Hostname</th>
                 <th>OS</th>
                 <th>IP</th>
@@ -154,8 +155,23 @@ if (empty($_SESSION['customerName'])) {
               $hosts_array = (empty($ENVIRONMENT)) ? GetHosts() : GetHosts($ENVIRONMENT);
               foreach ($hosts_array as $hosts) {
                 foreach ($hosts as $host) {
+                  switch ($host['type']) {
+                    case 'db':
+                      $type = "Databaseserver";
+                      break;
+                    case 'lb':
+                      $type = "Loadbalancer";
+                      break;
+                    case 'web':
+                      $type = 'Webserver';
+                      break;
+                    default:
+                      $type = "N/A";
+                      break;
+                  }
                   echo "<tr>
                           <td>${host['env']}</td>
+                          <td>${type}</td>
                           <td>${host['name']}</td>
                           <td>${host['os']}</td>
                           <td>${host['ip']}</td>
@@ -164,10 +180,12 @@ if (empty($_SESSION['customerName'])) {
                             <form action=\"/processing/machineAction.php\" method=\"post\">
                               <input type=\"hidden\" name=\"vmName\" value=\"${host['name']}\">
                               <input type=\"hidden\" name=\"env\" value=\"${host['env']}\">
+                              <input type=\"hidden\" name=\"type\" value=\"${host['type']}\">
 
                               <input type=\"submit\" class=\"btn btn-outline-success btn-sm\" title=\"Bring machine up\" name=\"cmd\" value=\"Up\">
                               <input type=\"submit\" class=\"btn btn-outline-secondary btn-sm\" title=\"Take machine down\" name=\"cmd\" value=\"Down\">
                               <input type=\"submit\" class=\"btn btn-outline-danger btn-sm\" title=\"Delete machine\" name=\"cmd\" value=\"Delete\">
+                              <input type=\"submit\" class=\"btn btn-outline-info btn-sm\" title=\"Run Ansible playbook\" name=\"cmd\" value=\"Run Ansible\">
                             </form>
                           </td>
                         </tr>";

@@ -74,6 +74,15 @@ if (empty($_SESSION['customerName'])) {
 				</div>
 				<form action="/processing/addHost.php?env=<?php echo $ENVIRONMENT ?>" method="post" style="max-width: 300px; margin: auto">
 					<div class="form-group">
+						<label for="inputTypeHost">Type of host</label>
+						<select class="form-control" name="type" id="inputTypeHost">
+							<option value="db">Databaseserver</option>
+							<option value="lb">Loadbalancer</option>
+							<option value="web">Webserver</option>
+						</select>
+					</div>
+
+					<div class="form-group">
 						<label for="inputHostname">Hostname</label>
 						<div class="input-group mb-2">
 							<div class="input-group-prepend">
@@ -92,16 +101,17 @@ if (empty($_SESSION['customerName'])) {
 						<!-- When a database is used to store customer data, their id could be used to generate a unique net -->
 						<!-- <div class="input-group mb-2">
 							<div class="input-group-prepend">
-								<div class="input-group-text"><?php echo "10.{id from db}.0." ?></div>
+								<div class="input-group-text"><?php //echo "10.{id from db}.0." 
+																?></div>
 							</div>
 							<input type="number" class="form-control" name="ip" id="inputIp" placeholder="11" require>
 						</div> -->
-						<label for="inputIp">IP Address</label>
+						<label for="inputIp">IP address</label>
 						<input type="text" class="form-control" name="ip" id="inputIp" placeholder="10.1.0.11" require>
 					</div>
 
 					<div class="form-group">
-						<label for="inputRam">Memory Amount</label>
+						<label for="inputRam">Memory amount</label>
 						<div class="input-group mb-2">
 							<input type="number" class="form-control" name="ram" id="inputRam" placeholder="512" require>
 							<div class="input-group-append">
