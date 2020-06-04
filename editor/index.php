@@ -1,4 +1,14 @@
 <?php
+session_start();
+
+$BASEDIR = "/home/vagrant/VM2/";
+
+if (empty($_SESSION['customerName'])) {
+	// User is not signed in, send to signin
+	Redirect('/account/signin.php');
+} else {
+	$CUSTOMERNAME = $_SESSION['customerName'];
+}
 
 /*
  * Pheditor
@@ -8,16 +18,15 @@
  * Release under MIT license
  */
 
-define('PASSWORD', 'c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec');
+define('PASSWORD', '');
 define('DS', DIRECTORY_SEPARATOR);
-// TODO: change dir to customer folder
-define('MAIN_DIR', '/home/vagrant/VM2/klanten/testklant/');
+define('MAIN_DIR', "${BASEDIR}klanten/${CUSTOMERNAME}");
 define('VERSION', '2.0.0');
 define('LOG_FILE', MAIN_DIR . DS . '.phedlog');
 define('SHOW_PHP_SELF', false);
 define('SHOW_HIDDEN_FILES', true);
 define('ACCESS_IP', '');
-define('HISTORY_PATH', MAIN_DIR . DS . '.phedhistory');
+define('HISTORY_PATH', '');
 define('MAX_HISTORY_FILES', 5);
 define('WORD_WRAP', true);
 define('PERMISSIONS', 'newfile,newdir,editfile,deletefile,deletedir,renamefile,renamedir,uploadfile'); // empty means all
@@ -472,19 +481,22 @@ function json_success($message, $params = [])
 
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Pheditor</title>
-	<link id="favicon" rel="shortcut icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAhFBMVEUAAAAAAAD////p6ekLCwt+fn43NzccHBzT09PIyMjFxcWysrKnp6ekpKSfn5+ampqNjY2IiIiCgoJ0dHRubm5kZGRdXV1PT09JSUlEREQjIyMTExMHBwf7+/v19fXg4ODW1tbAwMCRkZGDg4N5eXloaGhTU1M+Pj4vLy8sLCwlJSURERGNXQbaAAAAAXRSTlN4HjghaAAAAI1JREFUGNNlz0cSwkAQQ9HRdyI542xyhvvfj5opFoC167dolYzRT/5v6Qui+P6Bp3wLDakDPwM4SQGdA2B1mdFqgRw0C3wNHMVB9dr+wJMeFCHpBiqjG4n8PVEAQU5klOPtoNacpTxPRjOSrBoleA3EtmUrm5C5rpQyHSsHBWeV2JZ2lEsvhctek3GT+W8jMQY7SBmDowAAAABJRU5ErkJggg==">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+	<meta name="description" content="Very simple Self-Service Portal for school project for Virtualization Methods 2">
+	<meta name="author" content="Thomas van den Nieuwenhoff">
+	<title>Editor - VM2 Portaal</title>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.7/themes/default/style.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.43.0/codemirror.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.43.0/addon/lint/lint.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.43.0/addon/dialog/dialog.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css">
+	<!-- Custom styles -->
+	<link href="/styles/dashboard.css" rel="stylesheet">
 	<style type="text/css">
 		h1,
 		h1 a,
@@ -1270,150 +1282,193 @@ function json_success($message, $params = [])
 </head>
 
 <body>
+	<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+		<a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#"><?php echo $CUSTOMERNAME ?></a>
+		<button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<ul class="navbar-nav px-3">
+			<li class="nav-item text-nowrap">
+				<a class="nav-link" href="/processing/signout.php">Sign out</a>
+			</li>
+		</ul>
+	</nav>
 
 	<div class="container-fluid">
-
-		<div class="row p-3">
-			<div class="col-md-3">
-				<h1><a href="http://github.com/hamidsamak/pheditor" target="_blank" title="Pheditor <?= VERSION ?>">Pheditor</a></h1>
-			</div>
-			<div class="col-md-9">
-				<div class="float-left">
-					<div class="dropdown float-left">
-						<button class="btn btn-secondary dropdown-toggle" type="button" id="fileMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">File</button>
-						<div class="dropdown-menu" aria-labelledby="fileMenu">
-							<?php if (in_array('newfile', $permissions)) { ?>
-								<a class="dropdown-item new-file" href="javascript:void(0);">New File <span class="float-right text-secondary">N</span></a>
-							<?php } ?>
-
-							<?php if (in_array('newdir', $permissions)) { ?>
-								<a class="dropdown-item new-dir" href="javascript:void(0);">New Directory</a>
-							<?php } ?>
-
-							<?php if (in_array('uploadfile', $permissions)) { ?>
-								<a class="dropdown-item upload-file" href="javascript:void(0);">Upload File <span class="float-right text-secondary">U</span></a>
-							<?php } ?>
-
-							<?php if (in_array('newfile', $permissions) || in_array('newdir', $permissions)) { ?>
-								<div class="dropdown-divider"></div>
-							<?php } ?>
-
-							<?php if (in_array('newfile', $permissions) || in_array('editfile', $permissions)) { ?>
-								<a class="dropdown-item save disabled" href="javascript:void(0);">Save <span class="float-right text-secondary">S</span></a>
-							<?php } ?>
-
-							<?php if (in_array('deletefile', $permissions) || in_array('deletedir', $permissions)) { ?>
-								<a class="dropdown-item delete disabled" href="javascript:void(0);">Delete <span class="float-right text-secondary">D</span></a>
-							<?php } ?>
-
-							<?php if (in_array('renamefile', $permissions) || in_array('renamedir', $permissions)) { ?>
-								<a class="dropdown-item rename disabled" href="javascript:void(0);">Rename <span class="float-right text-secondary">R</span></a>
-							<?php } ?>
-
-							<a class="dropdown-item reopen disabled" href="javascript:void(0);">Re-open <span class="float-right text-secondary">O</span></a>
-							<div class="dropdown-divider"></div>
-							<a class="dropdown-item close disabled" href="javascript:void(0);">Close <span class="float-right text-secondary">C</span></a>
-						</div>
-					</div>
-					<span id="path" class="btn float-left"></span>
+		<div class="row">
+			<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+				<div class="sidebar-sticky pt-3">
+					<ul class="nav flex-column">
+						<li class="nav-item">
+							<a class="nav-link" href="/account/index.php">
+								<span data-feather="user"></span>
+								Account
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="/dashboard/index.php">
+								<span data-feather="cloud"></span>
+								Dashboard
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link active" href="#">
+								<span data-feather="edit"></span>
+								Editor <span class="sr-only">(current)</span>
+							</a>
+						</li>
+					</ul>
 				</div>
+			</nav>
 
-				<div class="float-right">
-					<?php if (in_array('changepassword', $permissions)) { ?><a href="javascript:void(0);" class="change-password btn btn-sm btn-primary">Password</a> &nbsp; <?php } ?><a href="<?= $_SERVER['PHP_SELF'] ?>?logout=1" class="btn btn-sm btn-danger">Logout</a>
-				</div>
-			</div>
-		</div>
+			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+					<div class="container-fluid">
 
-		<div class="row px-3">
-			<div class="col-lg-3 col-md-3 col-sm-12 col-12">
-				<div id="files" class="card">
-					<div class="card-block"><?= files(MAIN_DIR) ?></div>
-				</div>
-			</div>
+						<div class="row p-3">
+							<div class="col-md-9">
+								<div class="float-left">
+									<div class="dropdown float-left">
+										<button class="btn btn-secondary dropdown-toggle" type="button" id="fileMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">File</button>
+										<div class="dropdown-menu" aria-labelledby="fileMenu">
+											<?php if (in_array('newfile', $permissions)) { ?>
+												<a class="dropdown-item new-file" href="javascript:void(0);">New File <span class="float-right text-secondary">N</span></a>
+											<?php } ?>
 
-			<div class="col-lg-9 col-md-9 col-sm-12 col-12">
-				<div class="card">
-					<div class="card-block">
-						<div id="loading">
-							<div class="lds-ring">
-								<div></div>
-								<div></div>
-								<div></div>
-								<div></div>
-							</div>
-						</div>
-						<textarea id="editor" data-file="" class="form-control"></textarea>
-						<input id="digest" type="hidden" readonly>
-					</div>
-				</div>
-			</div>
+											<?php if (in_array('newdir', $permissions)) { ?>
+												<a class="dropdown-item new-dir" href="javascript:void(0);">New Directory</a>
+											<?php } ?>
 
-			<?php if (in_array('terminal', $permissions) !== false) : ?>
-				<div class="col-12">
-					<div class="card">
-						<div class="card-block">
-							<div id="terminal">
-								<div>
-									<button type="button" class="btn btn-light float-right ml-1 clear" style="display: none;">Clear</button>
-									<button type="button" class="btn btn-light float-right ml-1 copy" style="display: none;">Copy to clipboard</button>
-									<button type="button" class="btn btn-light float-right ml-1 fullscreen" style="display: none;">Full Screen</button>
-									<span class="toggle" data-toggle="collapse" data-target="#prompt">Terminal</span>
-									<div style="clear:both"></div>
+											<?php if (in_array('uploadfile', $permissions)) { ?>
+												<a class="dropdown-item upload-file" href="javascript:void(0);">Upload File <span class="float-right text-secondary">U</span></a>
+											<?php } ?>
+
+											<?php if (in_array('newfile', $permissions) || in_array('newdir', $permissions)) { ?>
+												<div class="dropdown-divider"></div>
+											<?php } ?>
+
+											<?php if (in_array('newfile', $permissions) || in_array('editfile', $permissions)) { ?>
+												<a class="dropdown-item save disabled" href="javascript:void(0);">Save <span class="float-right text-secondary">S</span></a>
+											<?php } ?>
+
+											<?php if (in_array('deletefile', $permissions) || in_array('deletedir', $permissions)) { ?>
+												<a class="dropdown-item delete disabled" href="javascript:void(0);">Delete <span class="float-right text-secondary">D</span></a>
+											<?php } ?>
+
+											<?php if (in_array('renamefile', $permissions) || in_array('renamedir', $permissions)) { ?>
+												<a class="dropdown-item rename disabled" href="javascript:void(0);">Rename <span class="float-right text-secondary">R</span></a>
+											<?php } ?>
+
+											<a class="dropdown-item reopen disabled" href="javascript:void(0);">Re-open <span class="float-right text-secondary">O</span></a>
+											<div class="dropdown-divider"></div>
+											<a class="dropdown-item close disabled" href="javascript:void(0);">Close <span class="float-right text-secondary">C</span></a>
+										</div>
+									</div>
+									<span id="path" class="btn float-left"></span>
 								</div>
-								<div id="prompt" class="collapse">
-									<pre></pre>
-									<input name="command" type="text" value="" class="command" autocomplete="off">
+
+								<div class="float-right">
+									<?php if (in_array('changepassword', $permissions)) { ?><a href="javascript:void(0);" class="change-password btn btn-sm btn-primary">Password</a> &nbsp; <?php } ?>
 								</div>
 							</div>
 						</div>
+
+						<div class="row px-3">
+							<div class="col-lg-3 col-md-3 col-sm-12 col-12">
+								<div id="files" class="card">
+									<div class="card-block"><?= files(MAIN_DIR) ?></div>
+								</div>
+							</div>
+
+							<div class="col-lg-9 col-md-9 col-sm-12 col-12">
+								<div class="card">
+									<div class="card-block">
+										<div id="loading">
+											<div class="lds-ring">
+												<div></div>
+												<div></div>
+												<div></div>
+												<div></div>
+											</div>
+										</div>
+										<textarea id="editor" data-file="" class="form-control"></textarea>
+										<input id="digest" type="hidden" readonly>
+									</div>
+								</div>
+							</div>
+
+							<?php if (in_array('terminal', $permissions) !== false) : ?>
+								<div class="col-12">
+									<div class="card">
+										<div class="card-block">
+											<div id="terminal">
+												<div>
+													<button type="button" class="btn btn-light float-right ml-1 clear" style="display: none;">Clear</button>
+													<button type="button" class="btn btn-light float-right ml-1 copy" style="display: none;">Copy to clipboard</button>
+													<button type="button" class="btn btn-light float-right ml-1 fullscreen" style="display: none;">Full Screen</button>
+													<span class="toggle" data-toggle="collapse" data-target="#prompt">Terminal</span>
+													<div style="clear:both"></div>
+												</div>
+												<div id="prompt" class="collapse">
+													<pre></pre>
+													<input name="command" type="text" value="" class="command" autocomplete="off">
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							<?php endif; ?>
+
+						</div>
+
 					</div>
+
+					<div class="alert"></div>
+
+					<form method="post">
+						<input name="action" type="hidden" value="upload-file">
+						<input name="destination" type="hidden" value="">
+
+						<div class="modal" id="uploadFileModal">
+							<div class="modal-dialog">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h4 class="modal-title">Upload File</h4>
+										<button type="button" class="close" data-dismiss="modal">&times;</button>
+									</div>
+									<div class="modal-body">
+										<div>
+											<input name="uploadfile[]" type="file" value="" multiple>
+										</div>
+										<?php
+
+										if (function_exists('ini_get')) {
+											$sizes = [
+												ini_get('post_max_size'),
+												ini_get('upload_max_filesize')
+											];
+
+											$max_size = max($sizes);
+
+											echo '<small class="text-muted">Maximum file size: ' . $max_size . '</small>';
+										}
+
+										?>
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-success" data-dismiss="modal">Upload</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
 				</div>
-			<?php endif; ?>
-
+			</main>
 		</div>
-
 	</div>
 
-	<div class="alert"></div>
-
-	<form method="post">
-		<input name="action" type="hidden" value="upload-file">
-		<input name="destination" type="hidden" value="">
-
-		<div class="modal" id="uploadFileModal">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<h4 class="modal-title">Upload File</h4>
-						<button type="button" class="close" data-dismiss="modal">&times;</button>
-					</div>
-					<div class="modal-body">
-						<div>
-							<input name="uploadfile[]" type="file" value="" multiple>
-						</div>
-						<?php
-
-						if (function_exists('ini_get')) {
-							$sizes = [
-								ini_get('post_max_size'),
-								ini_get('upload_max_filesize')
-							];
-
-							$max_size = max($sizes);
-
-							echo '<small class="text-muted">Maximum file size: ' . $max_size . '</small>';
-						}
-
-						?>
-					</div>
-					<div class="modal-footer">
-						<button type="button" class="btn btn-success" data-dismiss="modal">Upload</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	</form>
-
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script>
+<script src="/scripts/dashboard.js"></script>
 
 </html>

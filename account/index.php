@@ -63,6 +63,12 @@ if (empty($_SESSION['customerName'])) {
                 Dashboard
               </a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/editor/index.php">
+                <span data-feather="edit"></span>
+                Editor
+              </a>
+            </li>
           </ul>
         </div>
       </nav>

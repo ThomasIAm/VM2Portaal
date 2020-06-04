@@ -64,6 +64,12 @@ if (empty($_SESSION['customerName'])) {
 								Dashboard
 							</a>
 						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="/editor/index.php">
+								<span data-feather="edit"></span>
+								Editor
+							</a>
+						</li>
 					</ul>
 				</div>
 			</nav>
@@ -75,7 +81,7 @@ if (empty($_SESSION['customerName'])) {
 				<form action="/processing/addHost.php?env=<?php echo $ENVIRONMENT ?>" method="post" style="max-width: 300px; margin: auto">
 					<div class="form-group">
 						<label for="inputTypeHost">Type of host</label>
-						<select class="form-control" name="type" id="inputTypeHost">
+						<select class="form-control" name="type" id="inputTypeHost" required>
 							<option value="db">Databaseserver</option>
 							<option value="lb">Loadbalancer</option>
 							<option value="web">Webserver</option>
@@ -88,13 +94,13 @@ if (empty($_SESSION['customerName'])) {
 							<div class="input-group-prepend">
 								<div class="input-group-text"><?php echo "${CUSTOMERNAME}-${ENVIRONMENT}-" ?></div>
 							</div>
-							<input type="text" class="form-control" name="hostname" id="inputHostname" placeholder="web01" require>
+							<input type="text" class="form-control" name="hostname" id="inputHostname" placeholder="web01" required>
 						</div>
 					</div>
 
 					<div class="form-group">
 						<label for="inputOs">Operating System</label>
-						<input type="text" class="form-control" name="os" id="inputOs" placeholder="ubuntu/bionic64" require>
+						<input type="text" class="form-control" name="os" id="inputOs" placeholder="ubuntu/bionic64" required>
 					</div>
 
 					<div class="form-group">
@@ -104,16 +110,16 @@ if (empty($_SESSION['customerName'])) {
 								<div class="input-group-text"><?php //echo "10.{id from db}.0." 
 																?></div>
 							</div>
-							<input type="number" class="form-control" name="ip" id="inputIp" placeholder="11" require>
+							<input type="number" class="form-control" name="ip" id="inputIp" placeholder="11" required>
 						</div> -->
 						<label for="inputIp">IP address</label>
-						<input type="text" class="form-control" name="ip" id="inputIp" placeholder="10.1.0.11" require>
+						<input type="text" class="form-control" name="ip" id="inputIp" placeholder="10.1.0.11" required>
 					</div>
 
 					<div class="form-group">
 						<label for="inputRam">Memory amount</label>
 						<div class="input-group mb-2">
-							<input type="number" class="form-control" name="ram" id="inputRam" placeholder="512" require>
+							<input type="number" class="form-control" name="ram" id="inputRam" placeholder="512" required>
 							<div class="input-group-append">
 								<div class="input-group-text"><?php echo "MB" ?></div>
 							</div>

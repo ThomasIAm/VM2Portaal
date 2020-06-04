@@ -2,7 +2,6 @@
 session_start();
 
 $BASEDIR = '/home/vagrant/VM2/';
-$RES = '';
 
 // Redirect to url
 function Redirect(string $url)
@@ -11,21 +10,19 @@ function Redirect(string $url)
 	die();
 }
 
-// Execute command
-function ShellExec(string $cmd)
+// Get existing host from vagrant_hosts.yml
+function GetHost(string $hostName)
 {
 	global $BASEDIR;
-	global $RES;
+	global $CUSTOMERNAME;
+	global $ENVIRONMENT;
 
-	chdir("${BASEDIR}klanten/${_SESSION['customerName']}/${_POST['env']}/");
-	$RES = shell_exec('export VAGRANT_HOME=/home/vagrant/.vagrant.d && export HOME=/home/vagrant && ' . $cmd);
-}
-
-function FindVVmKey($hosts, $vmName)
-{
-	foreach ($hosts as $key => $host) {
-		if ($host['name'] === $vmName) {
-			return $key;
+	// Parse vagrant_hosts.yml to array
+	$hosts = yaml_parse_file("${BASEDIR}klanten/${CUSTOMERNAME}/${ENVIRONMENT}/vagrant_hosts.yml");
+	// Return requested host
+	foreach ($hosts as $host) {
+		if ($host['name'] === $hostName) {
+			return $host;
 		}
 	}
 }
@@ -33,84 +30,10 @@ function FindVVmKey($hosts, $vmName)
 if (empty($_SESSION['customerName'])) {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
-} elseif (empty($_POST['cmd'])) {
-	// No action was given, send to dash
-	Redirect('/dashboard/index.php');
-} elseif (!empty($_POST['vmName'])) {
-	$CUSTOMERNAME = $_SESSION['customerName'];
-
-	switch ($_POST['cmd']) {
-		case 'Up':
-			ShellExec("vagrant up ${_POST['vmName']}");
-			break;
-
-		case 'Down':
-			ShellExec("vagrant halt ${_POST['vmName']}");
-			break;
-
-		case 'Delete':
-			ShellExec("vagrant destroy ${_POST['vmName']} --force");
-
-			$vFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml";
-			$vHosts = yaml_parse_file($vFile);
-			$vVmKey = FindVVmKey($vHosts, $_POST['vmName']);
-			if ($vVmKey !== null) {
-				array_splice($vHosts, $vVmKey, 1);
-				yaml_emit_file($vFile, $vHosts);
-			}
-
-			$aFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml";
-			$aHosts = yaml_parse_file($aFile);
-			switch ($_POST['type']) {
-				case 'db':
-					$group = "databaseservers";
-					break;
-				case 'lb':
-					$group = "loadbalancers";
-					break;
-				case 'web':
-					$group = 'webservers';
-					break;
-			}
-			unset($aHosts['all']['children'][$group]['hosts'][$_POST['vmName']]);
-			yaml_emit_file($aFile, $aHosts);
-			break;
-		case 'Run Ansible':
-			ShellExec("ansible-playbook playbook.yml -l ${_POST['vmName']} --vault-id @ansible_vault_pass");
-			break;
-
-		default:
-			// No correct action was given, send to dash
-			Redirect('/dashboard/index.php');
-			break;
-	}
 } else {
 	$CUSTOMERNAME = $_SESSION['customerName'];
-
-	switch ($_POST['cmd']) {
-		case 'Up':
-			ShellExec("vagrant up");
-			break;
-
-		case 'Down':
-			ShellExec("vagrant halt");
-			break;
-
-		case 'Delete':
-			ShellExec("vagrant destroy --force");
-			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml", "");
-			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml", "");
-			break;
-
-		case 'Run Ansible':
-			ShellExec("ansible-playbook playbook.yml --vault-id @ansible_vault_pass");
-			break;
-
-		default:
-			// No correct action was given, send to dash
-			Redirect('/dashboard/index.php');
-			break;
-	}
+	$ENVIRONMENT = $_GET['env'];
+	$HOSTNAME = $_GET['hostName'];
 }
 ?>
 
@@ -122,7 +45,7 @@ if (empty($_SESSION['customerName'])) {
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="description" content="Very simple Self-Service Portal for school project for Virtualization Methods 2">
 	<meta name="author" content="Thomas van den Nieuwenhoff">
-	<title>Machine Action - VM2 Portaal</title>
+	<title>Edit Host - VM2 Portaal</title>
 
 	<!-- Bootstrap core CSS -->
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
@@ -173,10 +96,67 @@ if (empty($_SESSION['customerName'])) {
 
 			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-					<h1 class="h2">Result</h1>
+					<h1 class="h2">Edit Host</h1>
 				</div>
+				<form action="/processing/editHost.php?env=<?php echo $ENVIRONMENT ?>" method="post" style="max-width: 300px; margin: auto">
+					<input type="hidden" name="type" value="<?php echo (GetHost($HOSTNAME)['type']) ?>">
+					<div class="form-group">
+						<label for="inputTypeHost">Type of host</label>
+						<select class="form-control" name="type" id="inputTypeHost" disabled>
+							<option value="db" <?php
+												if (GetHost($HOSTNAME)['type'] === "db") {
+													echo ("selected");
+												}
+												?>>Databaseserver</option>
+							<option value="lb" <?php
+												if (GetHost($HOSTNAME)['type'] === "lb") {
+													echo ("selected");
+												}
+												?>>Loadbalancer</option>
+							<option value="web" <?php
+												if (GetHost($HOSTNAME)['type'] === "web") {
+													echo ("selected");
+												}
+												?>>Webserver</option>
+						</select>
+					</div>
 
-				<pre><?php echo $RES ?></pre>
+					<input type="hidden" name="hostname" value="<?php echo (GetHost($HOSTNAME)['name']) ?>">
+					<div class="form-group">
+						<label for="inputHostname">Hostname</label>
+						<input type="text" class="form-control" name="hostname" id="inputHostname" placeholder="web01" value="<?php echo (GetHost($HOSTNAME)['name']) ?>" disabled>
+					</div>
+
+					<div class="form-group">
+						<label for="inputOs">Operating System</label>
+						<input type="text" class="form-control" name="os" id="inputOs" placeholder="ubuntu/bionic64" value="<?php echo (GetHost($HOSTNAME)['os']) ?>" required>
+					</div>
+
+					<div class="form-group">
+						<!-- When a database is used to store customer data, their id could be used to generate a unique net -->
+						<!-- <div class="input-group mb-2">
+							<div class="input-group-prepend">
+								<div class="input-group-text"><?php //echo "10.{id from db}.0." 
+																?></div>
+							</div>
+							<input type="number" class="form-control" name="ip" id="inputIp" placeholder="11" required>
+						</div> -->
+						<label for="inputIp">IP address</label>
+						<input type="text" class="form-control" name="ip" id="inputIp" placeholder="10.1.0.11" value="<?php echo (GetHost($HOSTNAME)['ip']) ?>" required>
+					</div>
+
+					<div class="form-group">
+						<label for="inputRam">Memory amount</label>
+						<div class="input-group mb-2">
+							<input type="number" class="form-control" name="ram" id="inputRam" placeholder="512" value="<?php echo (GetHost($HOSTNAME)['ram']) ?>" required>
+							<div class="input-group-append">
+								<div class="input-group-text"><?php echo "MB" ?></div>
+							</div>
+						</div>
+					</div>
+
+					<button type="submit" class="btn btn-primary btn-block">Submit</button>
+				</form>
 			</main>
 		</div>
 	</div>

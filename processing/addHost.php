@@ -90,7 +90,7 @@ if (empty($_SESSION['customerName'])) {
 			break;
 	}
 
-	// Create an array the new host
+	// Create an array with the new host
 	$newAHost = array($newHostName => array('ansible_host' => $_POST['ip']));
 
 	if (empty($aHosts['all']['children'][$newHostGroup])) {
@@ -107,4 +107,4 @@ if (empty($_SESSION['customerName'])) {
 }
 
 // Host was created, send to dash
-Redirect('/dashboard/index.php');
+Redirect("/dashboard/index.php?env=${ENVIRONMENT}");

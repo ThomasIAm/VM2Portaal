@@ -51,7 +51,7 @@ if (empty($_SESSION['customerName'])) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="Very simple Self-Service Portal for school project for Virtualization Methods 2">
-  <meta name="author" content="">
+  <meta name="author" content="Thomas van den Nieuwenhoff">
   <title>Dashboard - VM2 Portaal</title>
 
   <!-- Bootstrap core CSS -->
@@ -89,6 +89,12 @@ if (empty($_SESSION['customerName'])) {
               <a class="nav-link active" href="#">
                 <span data-feather="cloud"></span>
                 Dashboard <span class="sr-only">(current)</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/editor/index.php">
+                <span data-feather="edit"></span>
+                Editor
               </a>
             </li>
           </ul>
@@ -186,6 +192,9 @@ if (empty($_SESSION['customerName'])) {
                               <input type=\"submit\" class=\"btn btn-outline-secondary btn-sm\" title=\"Take machine down\" name=\"cmd\" value=\"Down\">
                               <input type=\"submit\" class=\"btn btn-outline-danger btn-sm\" title=\"Delete machine\" name=\"cmd\" value=\"Delete\">
                               <input type=\"submit\" class=\"btn btn-outline-info btn-sm\" title=\"Run Ansible playbook\" name=\"cmd\" value=\"Run Ansible\">
+                              <a class=\"btn btn-outline-dark btn-sm vm-edit-btn\" href=\"editHost.php?hostName=${host['name']}&env=${host['env']}\" title=\"Edit machine\" role=\"button\">
+                                <span data-feather=\"edit-3\"></span>
+                              </a>
                             </form>
                           </td>
                         </tr>";
