@@ -61,4 +61,4 @@ if (empty($_SESSION['customerName'])) {
 }
 
 // Environment added, send to dash
-Redirect('/dashboard/index.php');
+Redirect("/dashboard/index.php?env=${env}");

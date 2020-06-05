@@ -177,6 +177,7 @@ if (empty($_SESSION['customerName'])) {
 				</div>
 
 				<pre><?php echo $RES ?></pre>
+				<a class="btn btn-primary" href="/dashboard/index.php?env=<?php echo ($_POST['env']) ?>" role="button">Back to dashboard</a>
 			</main>
 		</div>
 	</div>

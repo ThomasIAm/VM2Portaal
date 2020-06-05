@@ -34,6 +34,15 @@ function DeleteDir(string $dir)
 	rmdir($dir);
 }
 
+// Execute command
+function ShellExec(string $cmd)
+{
+	global $BASEDIR;
+
+	chdir("${BASEDIR}klanten/${_SESSION['customerName']}/${_GET['env']}/");
+	shell_exec('export VAGRANT_HOME=/home/vagrant/.vagrant.d && export HOME=/home/vagrant && ' . $cmd);
+}
+
 if (empty($_SESSION['customerName'])) {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
@@ -42,6 +51,9 @@ if (empty($_SESSION['customerName'])) {
 	Redirect('/dashboard/index.php');
 } else {
 	// An environment needs to be deleted
+	// First, destroy all machines
+	ShellExec("vagrant destroy --force");
+	// Second, delete all files
 	DeleteDir($BASEDIR . 'klanten/' . $_SESSION['customerName'] . '/' . $_GET['env'] . '/');
 }
 
