@@ -38,6 +38,7 @@ if (empty($_SESSION['customerName'])) {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
 } else {
+	// User is signed in, set global variables
 	$CUSTOMERNAME = $_SESSION['customerName'];
 }
 

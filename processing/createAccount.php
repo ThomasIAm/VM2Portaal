@@ -51,6 +51,7 @@ if (!empty($_SESSION['customerName'])) {
 
 <body>
 	<?php
+	// Show message when user already exists
 	if ($MODAL) {
 		echo ("
 			<div class=\"modal\" data-backdrop=\"static\" data-keyboard=\"false\" tabindex=\"-1\" role=\"dialog\" style=\"position: relative; display: block\">

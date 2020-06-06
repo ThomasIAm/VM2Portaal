@@ -32,6 +32,7 @@ if (!empty($_SESSION['customerName'])) {
 </head>
 
 <body class="text-center">
+  <!-- Gather account information and send to processing -->
   <form class="form-signin" action="/processing/signin.php" method="post">
     <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
     <label for="inputCustomerName" class="sr-only">Customer name</label>

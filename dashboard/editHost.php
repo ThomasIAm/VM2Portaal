@@ -31,6 +31,7 @@ if (empty($_SESSION['customerName'])) {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
 } else {
+	// User is signed in, set global variables
 	$CUSTOMERNAME = $_SESSION['customerName'];
 	$ENVIRONMENT = $_GET['env'];
 	$HOSTNAME = $_GET['hostName'];
@@ -98,26 +99,27 @@ if (empty($_SESSION['customerName'])) {
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
 					<h1 class="h2">Edit Host</h1>
 				</div>
+				<!-- Gather host information and send to processing -->
 				<form action="/processing/editHost.php?env=<?php echo $ENVIRONMENT ?>" method="post" style="max-width: 300px; margin: auto">
 					<input type="hidden" name="type" value="<?php echo (GetHost($HOSTNAME)['type']) ?>">
 					<div class="form-group">
 						<label for="inputTypeHost">Type of host</label>
 						<select class="form-control" name="type" id="inputTypeHost" disabled>
 							<option value="db" <?php
-												if (GetHost($HOSTNAME)['type'] === "db") {
-													echo ("selected");
-												}
-												?>>Databaseserver</option>
+																	if (GetHost($HOSTNAME)['type'] === "db") {
+																		echo ("selected");
+																	}
+																	?>>Databaseserver</option>
 							<option value="lb" <?php
-												if (GetHost($HOSTNAME)['type'] === "lb") {
-													echo ("selected");
-												}
-												?>>Loadbalancer</option>
+																	if (GetHost($HOSTNAME)['type'] === "lb") {
+																		echo ("selected");
+																	}
+																	?>>Loadbalancer</option>
 							<option value="web" <?php
-												if (GetHost($HOSTNAME)['type'] === "web") {
-													echo ("selected");
-												}
-												?>>Webserver</option>
+																	if (GetHost($HOSTNAME)['type'] === "web") {
+																		echo ("selected");
+																	}
+																	?>>Webserver</option>
 						</select>
 					</div>
 
@@ -137,7 +139,7 @@ if (empty($_SESSION['customerName'])) {
 						<!-- <div class="input-group mb-2">
 							<div class="input-group-prepend">
 								<div class="input-group-text"><?php //echo "10.{id from db}.0." 
-																?></div>
+																							?></div>
 							</div>
 							<input type="number" class="form-control" name="ip" id="inputIp" placeholder="11" required>
 						</div> -->

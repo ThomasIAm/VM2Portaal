@@ -21,10 +21,14 @@ function ShellExec(string $cmd)
 	$RES = shell_exec('export VAGRANT_HOME=/home/vagrant/.vagrant.d && export HOME=/home/vagrant && ' . $cmd);
 }
 
+// Find the array key for a VM
 function FindVVmKey($hosts, $vmName)
 {
+	// Loop through hosts
 	foreach ($hosts as $key => $host) {
+		// If a hosts matches the VM we need to find ...
 		if ($host['name'] === $vmName) {
+			// ... return its key
 			return $key;
 		}
 	}
@@ -37,8 +41,10 @@ if (empty($_SESSION['customerName'])) {
 	// No action was given, send to dash
 	Redirect('/dashboard/index.php');
 } elseif (!empty($_POST['vmName'])) {
+	// Action needs to be taken upon a machine!
 	$CUSTOMERNAME = $_SESSION['customerName'];
 
+	// Determine what command was given and execute it
 	switch ($_POST['cmd']) {
 		case 'Up':
 			ShellExec("vagrant up ${_POST['vmName']}");
@@ -51,6 +57,7 @@ if (empty($_SESSION['customerName'])) {
 		case 'Delete':
 			ShellExec("vagrant destroy ${_POST['vmName']} --force");
 
+			// Don't forget to remove the host from the inventories:
 			$vFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml";
 			$vHosts = yaml_parse_file($vFile);
 			$vVmKey = FindVVmKey($vHosts, $_POST['vmName']);
@@ -59,8 +66,10 @@ if (empty($_SESSION['customerName'])) {
 				yaml_emit_file($vFile, $vHosts);
 			}
 
+			// Still removing from inventories...
 			$aFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml";
 			$aHosts = yaml_parse_file($aFile);
+			// Conversion layer to Ansible group name
 			switch ($_POST['type']) {
 				case 'db':
 					$group = "databaseservers";
@@ -85,8 +94,10 @@ if (empty($_SESSION['customerName'])) {
 			break;
 	}
 } else {
+	// Action needs to be taken upon a whole environment! RIP
 	$CUSTOMERNAME = $_SESSION['customerName'];
 
+	// Same as before, but different
 	switch ($_POST['cmd']) {
 		case 'Up':
 			ShellExec("vagrant up");
@@ -98,6 +109,7 @@ if (empty($_SESSION['customerName'])) {
 
 		case 'Delete':
 			ShellExec("vagrant destroy --force");
+			// No need for complicated removal from inventories here, just blank the file
 			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml", "");
 			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml", "");
 			break;
@@ -172,6 +184,7 @@ if (empty($_SESSION['customerName'])) {
 			</nav>
 
 			<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+				<!-- Show the result from the command -->
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
 					<h1 class="h2">Result</h1>
 				</div>

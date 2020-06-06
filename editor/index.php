@@ -7,9 +7,11 @@ if (empty($_SESSION['customerName'])) {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
 } else {
+	// User is signed in, set global variables
 	$CUSTOMERNAME = $_SESSION['customerName'];
 }
 
+// This code is licensed under the MIT license and I am free to use it for this project. I had to modify it a bit to make it work though.
 /*
  * Pheditor
  * PHP file editor
@@ -18,8 +20,10 @@ if (empty($_SESSION['customerName'])) {
  * Release under MIT license
  */
 
+// Disable password authentication. I provide my own authentication
 define('PASSWORD', '');
 define('DS', DIRECTORY_SEPARATOR);
+// Set customer's folder as base directory
 define('MAIN_DIR', "${BASEDIR}klanten/${CUSTOMERNAME}");
 define('VERSION', '2.0.0');
 define('LOG_FILE', MAIN_DIR . DS . '.phedlog');
@@ -29,9 +33,12 @@ define('ACCESS_IP', '');
 define('HISTORY_PATH', '');
 define('MAX_HISTORY_FILES', 5);
 define('WORD_WRAP', true);
+// Ensure customer doesn't have too many permissions
 define('PERMISSIONS', 'newfile,newdir,editfile,deletefile,deletedir,renamefile,renamedir,uploadfile'); // empty means all
+// Hide files and folders I don't want the customer to see
 define('PATTERN_FILES', '/^(?!\.vagrant)(?!\.phed).*$/'); // empty means no pattern
 define('PATTERN_DIRECTORIES', '/^(?!\.vagrant)(?!\.phed).*$/'); // empy means no pattern
+// Disable built-in terminal
 define('TERMINAL_COMMANDS', '');
 
 if (empty(ACCESS_IP) === false && ACCESS_IP != $_SERVER['REMOTE_ADDR']) {

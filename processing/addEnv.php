@@ -50,7 +50,7 @@ if (empty($_SESSION['customerName'])) {
 	$env = $_POST['inputEnvName'];
 	// A new environment has to be created
 	$omgevingDir = "${BASEDIR}klanten/${CUSTOMERNAME}/${env}";
-	// Copy template envirionment
+	// Copy template environment
 	CopyDir($BASEDIR . 'templates/voorbeeld_klant/voorbeeld_omgeving/', $omgevingDir);
 	shell_exec("ssh-keygen -q -f ${omgevingDir}/${CUSTOMERNAME}-${env}-id_rsa -N \"\"");
 	// Replace variables in files

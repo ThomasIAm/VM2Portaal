@@ -8,5 +8,6 @@ function Redirect(string $url)
 	die();
 }
 
+// Destroy the (past) user's session and send to signin
 session_destroy();
 Redirect('/account/signin.php');

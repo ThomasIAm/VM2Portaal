@@ -21,10 +21,14 @@ function EmitYaml($hosts, $file)
 	yaml_emit_file($hostsFile, $hosts);
 }
 
+// Find the array key for a VM
 function FindVVmKey($hosts, $vmName)
 {
+	// Loop through hosts
 	foreach ($hosts as $key => $host) {
+		// If a hosts matches the VM we need to find ...
 		if ($host['name'] === $vmName) {
+			// ... return its key
 			return $key;
 		}
 	}
@@ -47,9 +51,11 @@ if (empty($_SESSION['customerName'])) {
 	$vHosts = yaml_parse_file($vFile);
 	$vVmKey = FindVVmKey($vHosts, $HOSTNAME);
 	if ($vVmKey !== null) {
+		// If the host exists in the current hosts file, remove it from the array
 		array_splice($vHosts, $vVmKey, 1);
 	}
 
+	// Do the same for Ansible, but different
 	$aFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${ENVIRONMENT}/hosts.yml";
 	$aHosts = yaml_parse_file($aFile);
 	foreach ($aHosts['all']['children'] as $key => $group) {

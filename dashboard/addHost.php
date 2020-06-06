@@ -12,6 +12,7 @@ if (empty($_SESSION['customerName'])) {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
 } else {
+	// User is signed in, set global variables
 	$CUSTOMERNAME = $_SESSION['customerName'];
 	$ENVIRONMENT = $_GET['env'];
 }
@@ -78,6 +79,7 @@ if (empty($_SESSION['customerName'])) {
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
 					<h1 class="h2">Add Host</h1>
 				</div>
+				<!-- Gather host information, send to processing -->
 				<form action="/processing/addHost.php?env=<?php echo $ENVIRONMENT ?>" method="post" style="max-width: 300px; margin: auto">
 					<div class="form-group">
 						<label for="inputTypeHost">Type of host</label>
@@ -108,7 +110,7 @@ if (empty($_SESSION['customerName'])) {
 						<!-- <div class="input-group mb-2">
 							<div class="input-group-prepend">
 								<div class="input-group-text"><?php //echo "10.{id from db}.0." 
-																?></div>
+																							?></div>
 							</div>
 							<input type="number" class="form-control" name="ip" id="inputIp" placeholder="11" required>
 						</div> -->

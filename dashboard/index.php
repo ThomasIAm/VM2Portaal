@@ -18,13 +18,16 @@ function GetHosts(string $env = null)
   global $ENVIRONMENTS;
 
   if (empty($env)) {
+    // If no environment was given, return all hosts for customers
     $files = array();
+    // Push each environment's hosts to an array
     foreach ($ENVIRONMENTS as $env) {
       $file = yaml_parse_file("${BASEDIR}klanten/${CUSTOMERNAME}/${env}/vagrant_hosts.yml");
       array_push($files, $file);
     }
     return $files;
   } else {
+    // Environment was given, return only those hosts
     // Set the hosts file path
     $file = yaml_parse_file("${BASEDIR}klanten/${CUSTOMERNAME}/${env}/vagrant_hosts.yml");
     // Parse the YAML file to a PHP array
@@ -36,6 +39,7 @@ if (empty($_SESSION['customerName'])) {
   // User is not signed in, send to signin
   Redirect('/account/signin.php');
 } else {
+  // Set global variables
   $CUSTOMERNAME = $_SESSION['customerName'];
   $ENVIRONMENT = $_GET['env'];
 
@@ -107,6 +111,7 @@ if (empty($_SESSION['customerName'])) {
           <div class="btn-toolbar mb-2 mb-md-0">
             <?php
             if (!empty($ENVIRONMENT)) {
+              // When displaying a specific environment, display the option menu
               echo "<form action=\"/processing/machineAction.php\" method=\"post\">
                       <input type=\"hidden\" name=\"env\" value=\"${ENVIRONMENT}\">
                       <div class=\"btn-group mr-2\">
@@ -120,29 +125,36 @@ if (empty($_SESSION['customerName'])) {
                     </form>";
             }
             ?>
+            <!-- Environment selector -->
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="environmentDropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <span data-feather="layers"></span>
               <?php if (empty($_GET['env'])) {
+                // When no environment is selected, display "Environments"
                 echo "Environments";
               } else {
+                // When a environment is selected, display its name
                 echo $_GET['env'];
               }
               ?>
             </button>
+            <!-- Environment dropdown -->
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="environmentDropdownMenuButton">
               <?php
               echo "<a class=\"dropdown-item\" href=\"?env=\">All</a>";
               echo "<div class=\"dropdown-divider\"></div>";
               foreach ($ENVIRONMENTS as $env) {
+                // Loop through all environments for customer
                 echo "<a class=\"dropdown-item\" href=\"?env=${env}\">${env}</a>";
               }
               if (empty($ENVIRONMENTS)) {
+                // If there are no environments, display this message
                 echo "<h6 class=\"dropdown-header\">No environments found</h6>";
               }
               ?>
             </div>
           </div>
         </div>
+        <!-- Machine table -->
         <div class="table-responsive">
           <table class="table table-striped table-sm">
             <thead>
@@ -158,9 +170,13 @@ if (empty($_SESSION['customerName'])) {
             </thead>
             <tbody>
               <?php
+              // Get all hosts for customer or environment
               $hosts_array = (empty($ENVIRONMENT)) ? GetHosts() : GetHosts($ENVIRONMENT);
+              // Loop through each environment in array
               foreach ($hosts_array as $hosts) {
+                // Loop through each host in environment
                 foreach ($hosts as $host) {
+                  // Display nicely formatted type
                   switch ($host['type']) {
                     case 'db':
                       $type = "Databaseserver";
@@ -175,6 +191,7 @@ if (empty($_SESSION['customerName'])) {
                       $type = "N/A";
                       break;
                   }
+                  // Actual table row
                   echo "<tr>
                           <td>${host['env']}</td>
                           <td>${type}</td>
