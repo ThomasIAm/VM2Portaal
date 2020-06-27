@@ -1,4 +1,5 @@
 # VM2Portaal
+![Cover image](https://github.com/ThomasIAm/VM2Portaal/blob/master/VM2PortaalCover.png?raw=true)
 
 This is the frontend for simple a cloud portal. This was a school project for the VM2 class. This doesn't reflect the best of my abilities. I was working with a strict deadline while the features in this frontend far exceed the requirements.
 
