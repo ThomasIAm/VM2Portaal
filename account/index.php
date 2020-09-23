@@ -81,7 +81,9 @@ if (empty($_SESSION['customerName'])) {
           <li class="list-group-item">
             <h3 class="h3">Delete account</h3>
             <p class="text-danger float-left">CAUTION! This will delete your account with all its environments and machines!</p>
-            <a class="btn btn-danger float-right" href="/processing/deleteAccount.php" role="button">Delete</a>
+            <br>
+            <small>This feature was disabled for demo purposes.</small>
+            <a class="btn btn-danger float-right disabled" href="/processing/deleteAccount.php" role="button">Delete</a>
           </li>
         </ul>
       </main>

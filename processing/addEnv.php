@@ -39,10 +39,10 @@ function ReplaceText(string $old, string $new, string $file)
 	file_put_contents($file, $str);
 }
 
-if (empty($_SESSION['customerName'])) {
+if (empty($_SESSION['customerName']) || $_SESSION['customerName'] != "demo") {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
-} elseif (empty($_POST['inputEnvName'])) {
+} elseif (empty($_POST['inputEnvName']) || $_POST['inputEnvName'] == "test") {
 	// No new environment needs to be created, send to dash
 	Redirect('/dashboard/index.php');
 } else {

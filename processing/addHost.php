@@ -34,7 +34,7 @@ function EmitYaml($hosts, $file)
 	yaml_emit_file($hostsFile, $hosts);
 }
 
-if (empty($_SESSION['customerName'])) {
+if (empty($_SESSION['customerName']) || $_SESSION['customerName'] != "demo") {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
 } elseif (empty($_POST['hostname'])) {

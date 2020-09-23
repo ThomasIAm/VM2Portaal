@@ -8,7 +8,7 @@ function Redirect(string $url)
 	die();
 }
 
-if (empty($_SESSION['customerName'])) {
+if (empty($_SESSION['customerName']) || $_POST['inputCustomerName'] != "demo") {
 	// User is not yet signed in
 	if (empty($_POST['inputCustomerName'])) {
 		// User is not signing in, send to signin

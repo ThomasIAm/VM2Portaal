@@ -10,7 +10,7 @@ function Redirect(string $url)
 	die();
 }
 
-if (!empty($_SESSION['customerName'])) {
+if (!empty($_SESSION['customerName']) || $_POST['inputCustomerName'] != "demo" || $_SESSION['customerName'] != "demo") {
 	// User is already signed in, send to dash
 	Redirect('/dashboard/index.php');
 } elseif (!empty($_POST['inputCustomerName'])) {

@@ -35,6 +35,15 @@ function GetHosts(string $env = null)
   }
 }
 
+function DemoCheck(string $env = null, string $name = null)
+{
+  if (empty($name)) {
+    return $env == "test" ? 'disabled' : null;
+  } else {
+    return 0 < count(array_intersect(array_map('strtolower', explode('-', $name)), array('web01', 'web02', 'lb01', 'db01'))) && $env == 'test' ? 'disabled' : null;
+  }
+}
+
 if (empty($_SESSION['customerName'])) {
   // User is not signed in, send to signin
   Redirect('/account/signin.php');
@@ -117,10 +126,12 @@ if (empty($_SESSION['customerName'])) {
                       <div class=\"btn-group mr-2\">
                         <input type=\"submit\" class=\"btn btn-sm btn-outline-success\" name=\"cmd\" value=\"Up\">
                         <input type=\"submit\" class=\"btn btn-sm btn-outline-secondary\" name=\"cmd\" value=\"Down\">
-                        <input type=\"submit\" class=\"btn btn-sm btn-outline-danger\" name=\"cmd\" value=\"Delete\">
+                        <input type=\"submit\" class=\"btn btn-sm btn-outline-danger\" name=\"cmd\" value=\"Delete\"" . DemoCheck($ENVIRONMENT) . ">
                         <input type=\"submit\" class=\"btn btn-sm btn-outline-info\" name=\"cmd\" value=\"Run Ansible\">
                         <a class=\"btn btn-sm btn-success\" href=\"/dashboard/addHost.php?env=${ENVIRONMENT}\" role=\"button\"><span data-feather=\"plus\"></span> Add Host</a>
-                        <a class=\"btn btn-sm btn-danger\" href=\"/processing/deleteEnv.php?env=${ENVIRONMENT}\" role=\"button\"><span data-feather=\"minus\"></span> Delete Environment</a>
+                        <a class=\"btn btn-sm btn-danger " . DemoCheck($ENVIRONMENT) . "\" href=\"/processing/deleteEnv.php?env=${ENVIRONMENT}\" role=\"button\">
+                          <span data-feather=\"minus\"></span> Delete Environment
+                        </a>
                       </div>
                     </form>";
             }
@@ -174,25 +185,26 @@ if (empty($_SESSION['customerName'])) {
               $hosts_array = (empty($ENVIRONMENT)) ? GetHosts() : GetHosts($ENVIRONMENT);
               // Loop through each environment in array
               foreach ($hosts_array as $hosts) {
-                // Loop through each host in environment
-                foreach ($hosts as $host) {
-                  // Display nicely formatted type
-                  switch ($host['type']) {
-                    case 'db':
-                      $type = "Databaseserver";
-                      break;
-                    case 'lb':
-                      $type = "Loadbalancer";
-                      break;
-                    case 'web':
-                      $type = 'Webserver';
-                      break;
-                    default:
-                      $type = "N/A";
-                      break;
-                  }
-                  // Actual table row
-                  echo "<tr>
+                if (!empty($hosts)) {
+                  // Loop through each host in environment
+                  foreach ($hosts as $host) {
+                    // Display nicely formatted type
+                    switch ($host['type']) {
+                      case 'db':
+                        $type = "Databaseserver";
+                        break;
+                      case 'lb':
+                        $type = "Loadbalancer";
+                        break;
+                      case 'web':
+                        $type = 'Webserver';
+                        break;
+                      default:
+                        $type = "N/A";
+                        break;
+                    }
+                    // Actual table row
+                    echo "<tr>
                           <td>${host['env']}</td>
                           <td>${type}</td>
                           <td>${host['name']}</td>
@@ -207,14 +219,15 @@ if (empty($_SESSION['customerName'])) {
 
                               <input type=\"submit\" class=\"btn btn-outline-success btn-sm\" title=\"Bring machine up\" name=\"cmd\" value=\"Up\">
                               <input type=\"submit\" class=\"btn btn-outline-secondary btn-sm\" title=\"Take machine down\" name=\"cmd\" value=\"Down\">
-                              <input type=\"submit\" class=\"btn btn-outline-danger btn-sm\" title=\"Delete machine\" name=\"cmd\" value=\"Delete\">
+                              <input type=\"submit\" class=\"btn btn-outline-danger btn-sm\" title=\"Delete machine\" name=\"cmd\" value=\"Delete\"" . DemoCheck($host['env'], $host['name']) . ">
                               <input type=\"submit\" class=\"btn btn-outline-info btn-sm\" title=\"Run Ansible playbook\" name=\"cmd\" value=\"Run Ansible\">
-                              <a class=\"btn btn-outline-dark btn-sm vm-edit-btn\" href=\"editHost.php?hostName=${host['name']}&env=${host['env']}\" title=\"Edit machine\" role=\"button\">
+                              <a class=\"btn btn-outline-dark btn-sm vm-edit-btn " . DemoCheck($host['env'], $host['name']) . "\" href=\"editHost.php?hostName=${host['name']}&env=${host['env']}\" title=\"Edit machine\" role=\"button\">
                                 <span data-feather=\"edit-3\"></span>
                               </a>
                             </form>
                           </td>
                         </tr>";
+                  }
                 }
               }
               ?>

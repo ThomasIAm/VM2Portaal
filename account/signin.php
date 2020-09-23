@@ -36,10 +36,13 @@ if (!empty($_SESSION['customerName'])) {
   <form class="form-signin" action="/processing/signin.php" method="post">
     <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
     <label for="inputCustomerName" class="sr-only">Customer name</label>
-    <input type="text" id="inputCustomerName" name="inputCustomerName" class="form-control" placeholder="Customer name" required autofocus>
+    <input type="text" id="inputCustomerName" name="inputCustomerName" class="form-control" placeholder="Customer name" required autofocus readonly value="demo">
     <label for="inputPassword" class="sr-only">Password</label>
     <!-- <input type="password" id="inputPassword" class="form-control" placeholder="Password" required> -->
     <input type="password" id="inputPassword" class="form-control" placeholder="Password" disabled>
+    <small id="inputCustomerNameDemoNotification" class="form-text text-muted">
+      These fields have been disabled for demo purposes.
+    </small>
     <a href="/account/create.php">No account? Create one!</a>
     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
     <p class="mt-5 mb-3 text-muted">&copy; Thomas van den Nieuwenhoff - 2020</p>

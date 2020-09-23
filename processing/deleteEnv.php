@@ -43,7 +43,7 @@ function ShellExec(string $cmd)
 	shell_exec('export VAGRANT_HOME=/home/vagrant/.vagrant.d && export HOME=/home/vagrant && ' . $cmd);
 }
 
-if (empty($_SESSION['customerName'])) {
+if (empty($_SESSION['customerName']) || $_GET['env'] == "test") {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
 } elseif (empty($_GET['env'])) {

@@ -34,7 +34,7 @@ function FindVVmKey($hosts, $vmName)
 	}
 }
 
-if (empty($_SESSION['customerName'])) {
+if (empty($_SESSION['customerName']) || !empty($_POST['hostname'])) {
 	// User is not signed in, send to signin
 	Redirect('/account/signin.php');
 } elseif (empty($_POST['hostname'])) {

@@ -43,6 +43,6 @@ if (empty($_SESSION['customerName'])) {
 }
 
 // Delete customer's directory
-DeleteDir("${BASEDIR}klanten/${CUSTOMERNAME}/");
+// DeleteDir("${BASEDIR}klanten/${CUSTOMERNAME}/");
 // Sign the user out
 Redirect('/processing/signout.php');

@@ -11,6 +11,8 @@ if (empty($_SESSION['customerName'])) {
 	$CUSTOMERNAME = $_SESSION['customerName'];
 }
 
+session_write_close();
+
 // This code is licensed under the MIT license and I am free to use it for this project. I had to modify it a bit to make it work though.
 /*
  * Pheditor

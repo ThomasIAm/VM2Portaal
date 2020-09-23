@@ -47,15 +47,18 @@ if (empty($_SESSION['customerName'])) {
 	// Determine what command was given and execute it
 	switch ($_POST['cmd']) {
 		case 'Up':
-			ShellExec("vagrant up ${_POST['vmName']}");
+			// ShellExec("vagrant up ${_POST['vmName']}");
+			$RES = "Bringing machine 'demo-test-web01' up with 'virtualbox' provider...\n==> demo-test-web01: Importing base box 'ubuntu/bionic64'...\n\n...";
 			break;
 
 		case 'Down':
-			ShellExec("vagrant halt ${_POST['vmName']}");
+			// ShellExec("vagrant halt ${_POST['vmName']}");
+			$RES = "==> demo-test-web01: Attemting graceful shutdown of VM...";
 			break;
 
 		case 'Delete':
-			ShellExec("vagrant destroy ${_POST['vmName']} --force");
+			// ShellExec("vagrant destroy ${_POST['vmName']} --force");
+			$RES = "==> demo-test-web01: Forcing shutdown of VM...\n==> demo-test-web01: Destroying VM and associated drives...";
 
 			// Don't forget to remove the host from the inventories:
 			$vFile = "${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml";
@@ -85,7 +88,8 @@ if (empty($_SESSION['customerName'])) {
 			yaml_emit_file($aFile, $aHosts);
 			break;
 		case 'Run Ansible':
-			ShellExec("ansible-playbook playbook.yml -l ${_POST['vmName']} --vault-id @ansible_vault_pass");
+			// ShellExec("ansible-playbook playbook.yml -l ${_POST['vmName']} --vault-id @ansible_vault_pass");
+			$RES = "PLAY [apply common configuration to all nodes] *****************\n\nTASK [Gathering Facts] *****************************************\nok: [demo-test-web01]\n\nTASK [common : Add ufw rule for ssh] ***************************\nchanged: [demo-test-web01]\n\n...\n\nPLAY RECAP *****************************************************\ndemo-test-web01          : ok=0    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0";
 			break;
 
 		default:
@@ -100,22 +104,30 @@ if (empty($_SESSION['customerName'])) {
 	// Same as before, but different
 	switch ($_POST['cmd']) {
 		case 'Up':
-			ShellExec("vagrant up");
+			// ShellExec("vagrant up");
+			$RES = "Bringing machine 'demo-test-web01' up with 'virtualbox' provider...\n==> demo-test-web01: Importing base box 'ubuntu/bionic64'...\n\n...";
 			break;
 
 		case 'Down':
-			ShellExec("vagrant halt");
+			// ShellExec("vagrant halt");
+			$RES = "==> demo-test-web01: Attemting graceful shutdown of VM...";
 			break;
 
 		case 'Delete':
-			ShellExec("vagrant destroy --force");
-			// No need for complicated removal from inventories here, just blank the file
-			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml", "");
-			file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml", "");
+			if ($_POST['env'] !== "test") {
+				// ShellExec("vagrant destroy --force");
+				$RES = "==> demo-test-web01: Forcing shutdown of VM...\n==> demo-test-web01: Destroying VM and associated drives...";
+				// No need for complicated removal from inventories here, just blank the file
+				file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/vagrant_hosts.yml", "");
+				file_put_contents("${BASEDIR}klanten/${CUSTOMERNAME}/${_POST['env']}/hosts.yml", "");
+			} else {
+				Redirect('/dashboard/index.php');
+			}
 			break;
 
 		case 'Run Ansible':
-			ShellExec("ansible-playbook playbook.yml --vault-id @ansible_vault_pass");
+			// ShellExec("ansible-playbook playbook.yml --vault-id @ansible_vault_pass");
+			$RES = "PLAY [apply common configuration to all nodes] *****************\n\nTASK [Gathering Facts] *****************************************\nok: [demo-test-web01]\n\nTASK [common : Add ufw rule for ssh] ***************************\nchanged: [demo-test-web01]\n\n...\n\nPLAY RECAP *****************************************************\ndemo-test-web01          : ok=0    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0";
 			break;
 
 		default:
@@ -188,6 +200,9 @@ if (empty($_SESSION['customerName'])) {
 				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
 					<h1 class="h2">Result</h1>
 				</div>
+
+				<small>This feature has been disabled for demo purposes. Here is an example of what this would look like:</small>
+				<br><br>
 
 				<pre><?php echo $RES ?></pre>
 				<a class="btn btn-primary" href="/dashboard/index.php?env=<?php echo ($_POST['env']) ?>" role="button">Back to dashboard</a>
