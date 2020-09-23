@@ -1,8 +1,7 @@
 version: '3'
 services:
-  vm2:
-    image: php:7.2-apache
+  vm2portaal:
+    image: thomasiam/vm2portaal
     ports:
       - '80:80'
-    volumes:
-      - .:/var/www/html
+      - '443:443'
