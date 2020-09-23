@@ -1,0 +1,9 @@
+---
+- name: Install PHP
+  when: install_php
+  apt:
+    pkg:
+      - php
+      - libapache2-mod-php
+      - php-mysql
+    state: present

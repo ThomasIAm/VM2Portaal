@@ -1,0 +1,18 @@
+---
+mysql_non_root_user_name: 'admin'
+mysql_root_hosts:
+  - 'localhost'
+  - '127.0.0.1'
+  - '::1'
+mysql_non_root_user: true
+mysql_non_root_user_hosts:
+  - 'localhost'
+  - '127.0.0.1'
+  - '::1'
+mysql_enable: true
+mysql_use_dump: false
+mysql_remove_testdb: true
+mysql_remove_anon_users: true
+mysql_bind_addr: 127.0.0.1
+mysql_check_ssl: true
+mysql_non_root_user_privs: '*.*:USAGE'

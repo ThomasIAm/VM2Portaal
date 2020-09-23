@@ -1,0 +1,43 @@
+<?php
+$host = "{{ hostvars['demo-test-db01'].ansible_enp0s8.ipv4.address }}";
+$db = "{{ mysql_db_name | mandatory }}";
+$user = "{{ mysql_non_root_user_name | mandatory }}";
+$pass = "{{ mysql_non_root_user_password | mandatory }}";
+
+$dsn = "mysql:host=$host;dbname=$db";
+$options = [
+	PDO::ATTR_ERRMODE						=>	PDO::ERRMODE_EXCEPTION,
+	PDO::ATTR_DEFAULT_FETCH_MODE			=>	PDO::FETCH_ASSOC,
+	PDO::ATTR_EMULATE_PREPARES				=>	false,
+	PDO::MYSQL_ATTR_INIT_COMMAND			=>	'SET NAMES utf8',
+	PDO::MYSQL_ATTR_SSL_CA					=>	'',
+	PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT	=>	false,
+];
+try {
+	$pdo = new PDO($dsn, $user, $pass, $options);
+} catch (PDOException $e) {
+	// throw new PDOException($e->getMessage(), (int)$e->getCode());
+	echo $e;
+}
+?>
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Ansible Application</title>
+</head>
+
+<body>
+	<a href="http://{{ ansible_enp0s8.ipv4.address }}">Homepage</a>
+	<h1>apache2, configured by Ansible</h1>
+	<p>If you can see this, Ansible succesfully installed apache2.</p>
+
+	<p>Running on {{ inventory_hostname }}</p>
+
+	<?php echo "PHP is working" ?>
+
+	<p>Image from database:</p>
+	<img src="<?php echo $pdo->query("select url from test")->fetch()['url'] ?>">
+</body>
+
+</html>

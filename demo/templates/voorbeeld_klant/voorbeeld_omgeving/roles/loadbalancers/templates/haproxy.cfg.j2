@@ -1,0 +1,61 @@
+global
+	log {{ haproxy_log_dir | mandatory }}	local0
+	log {{ haproxy_log_dir | mandatory }}	local1 notice
+	chroot /var/lib/haproxy
+	stats socket /run/haproxy/admin.sock mode 660 level admin
+	stats timeout {{ haproxy_stats_timeout | mandatory }}
+	user {{ haproxy_user | mandatory }}
+	group {{ haproxy_group | mandatory }}
+	daemon
+
+	# Default SSL material locations
+	ca-base {{ haproxy_ca_base | mandatory }}
+	crt-base {{ haproxy_crt_base | mandatory }}
+
+	# Default ciphers to use on SSL-enabled listening sockets.
+	# For more information, see ciphers(1SSL). This list is from:
+	# https://hynek.me/articles/hardening-your-web-servers-ssl-ciphers/
+	ssl-default-bind-ciphers {{ haproxy_ssl_default_bind_ciphers | mandatory }}
+	ssl-default-bind-options {{ haproxy_ssl_default_bind_options | mandatory }}
+
+defaults
+	log		global
+	mode	{{ haproxy_mode | mandatory }}
+	option	httplog
+	option	dontlognull
+	timeout	connect	 {{ haproxy_timeout_connect | mandatory }}
+	timeout	client	{{ haproxy_timeout_client | mandatory }}
+	timeout	server	{{ haproxy_timeout_server | mandatory }}
+	errorfile 400 /etc/haproxy/errors/400.http
+	errorfile 403 /etc/haproxy/errors/403.http
+	errorfile 408 /etc/haproxy/errors/408.http
+	errorfile 500 /etc/haproxy/errors/500.http
+	errorfile 502 /etc/haproxy/errors/502.http
+	errorfile 503 /etc/haproxy/errors/503.http
+	errorfile 504 /etc/haproxy/errors/504.http
+
+{% if haproxy_enable_stats is true %}
+frontend stats
+	bind *:{{ haproxy_stats_port | mandatory }}
+	stats enable
+	stats uri {{ haproxy_stats_uri | mandatory }}
+	stats refresh {{ haproxy_stats_refresh | mandatory }}
+	stats auth {{ haproxy_stats_user | mandatory }}:{{ haproxy_stats_pass | mandatory }}
+{% endif %}
+
+{% for frontend in haproxy_frontends %}
+frontend {{ frontend.name | mandatory }}
+	bind {{ frontend.bind | mandatory }}:{{ frontend.port | mandatory }} {{ frontend.bind_options | default(none) }}
+	option {{ frontend.options | mandatory }}
+	default_backend {{ frontend.default_backend | mandatory }}
+	{{ frontend.extra_options | default(none) }}
+{% endfor %}
+
+{% for backend in haproxy_backends %}
+backend {{ backend.name | mandatory }}
+	balance {{ backend.algorithm | mandatory }}
+	{% for host in backend.servers %}
+	server {{ host.name | mandatory }} {{ hostvars[host.name].ansible_enp0s8.ipv4.address }}:{{ host.port | mandatory }} {{ host.options | mandatory }}
+	{% endfor %}
+	{{ backend.extra_options | default(none) }}
+{% endfor %}

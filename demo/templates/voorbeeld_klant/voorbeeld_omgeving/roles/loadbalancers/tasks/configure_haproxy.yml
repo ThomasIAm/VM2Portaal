@@ -1,0 +1,21 @@
+---
+- name: Check if default configuration exists
+  stat:
+    path: /etc/haproxy/haproxy.cfg*
+  register: haproxydefaultconfig
+
+- name: Rename default configuration
+  command: mv /etc/haproxy/haproxy.cfg{,.original}
+  when: haproxydefaultconfig.stat.exists
+
+- name: Copy new configuration
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+  notify: restart haproxy
+
+- name: Verify configuration
+  command: haproxy -f /etc/haproxy/haproxy.cfg -c
+  register: haproxycfgchk
+  failed_when: "'error' in haproxycfgchk.stdout"
+  changed_when: false

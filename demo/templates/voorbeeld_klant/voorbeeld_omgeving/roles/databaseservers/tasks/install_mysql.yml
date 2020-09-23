@@ -1,0 +1,19 @@
+---
+- name: Install MySQL Python libraries
+  apt:
+    name: 'python3-mysqldb'
+    state: present
+    update_cache: yes
+
+- name: Install MySQL
+  apt:
+    pkg:
+      - 'mysql-common'
+      - 'mysql-server'
+    state: present
+    update_cache: yes
+
+- name: Add UFW rule for MySQL
+  ufw:
+    rule: allow
+    port: '{{ mysql_port | mandatory }}'

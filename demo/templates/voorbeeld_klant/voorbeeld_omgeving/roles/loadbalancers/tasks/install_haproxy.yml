@@ -1,0 +1,20 @@
+---
+- name: Install HAProxy
+  apt:
+    name: 'haproxy'
+    state: present
+    update_cache: yes
+
+- name: Check if HAProxy is working
+  command: haproxy -v
+  register: haproxystatus
+  failed_when: "'version' not in haproxystatus.stdout"
+  changed_when: false
+
+- name: Add ufw rule for HAProxy
+  when: haproxy_ports_list is defined
+  ufw:
+    rule: allow
+    port: '{{ item }}'
+  with_items:
+    - '{{ haproxy_ports_list }}'

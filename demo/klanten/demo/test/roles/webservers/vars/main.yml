@@ -1,0 +1,12 @@
+---
+apache_directory_index: 'index.php index.html index.cgi index.pl index.xhtml index.htm'
+apache_virtual_hosts:
+  - bind: '*'
+    port: 80
+    server_admin: webmaster@localhost
+    root: /var/www/html
+    error_log: '${APACHE_LOG_DIR}/error.log'
+    custom_log: '${APACHE_LOG_DIR}/access.log'
+    custom_log_options: combined
+install_php: true
+apache_use_template: true

@@ -1,0 +1,28 @@
+---
+- name: apply common configuration to all nodes
+  hosts: all
+  become: true
+
+  roles:
+    - common
+
+- name: configure and deploy the webservers
+  hosts: webservers
+  become: true
+
+  roles:
+    - webservers
+
+- name: configure and deploy the loadbalancers
+  hosts: loadbalancers
+  become: true
+
+  roles:
+    - loadbalancers
+
+- name: configure and deploy the databaseservers
+  hosts: databaseservers
+  become: true
+
+  roles:
+    - databaseservers

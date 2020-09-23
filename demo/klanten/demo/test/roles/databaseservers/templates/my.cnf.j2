@@ -1,0 +1,7 @@
+[client]
+user=root
+password='{{ mysql_root_password | mandatory }}'
+
+[mysqld]
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mysql.conf.d/

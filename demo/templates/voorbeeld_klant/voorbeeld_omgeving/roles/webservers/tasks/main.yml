@@ -1,0 +1,4 @@
+---
+- import_tasks: install_apache.yml
+- import_tasks: install_php.yml
+- import_tasks: setup_site.yml

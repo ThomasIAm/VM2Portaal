@@ -1,0 +1,9 @@
+{% for host in apache_virtual_hosts %}
+<VirtualHost {{ host.bind | mandatory }}:{{ host.port | mandatory }}>
+	ServerAdmin {{ host.server_admin | mandatory }}
+	DocumentRoot {{ host.root | mandatory }}
+	ErrorLog {{ host.error_log | mandatory }}
+	CustomLog {{ host.custom_log | mandatory }} {{ host.custom_log_options | default(none) }}
+	{{ host.extra_options | default(none) }}
+</VirtualHost>
+{% endfor %}

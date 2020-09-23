@@ -1,0 +1,25 @@
+---
+- name: demo-test-web01
+  os: ubuntu/bionic64
+  ip: 10.0.1.11
+  ram: 512
+  env: test
+  type: web
+- name: demo-test-web02
+  os: ubuntu/bionic64
+  ip: 10.0.1.12
+  ram: 512
+  env: test
+  type: web
+- name: demo-test-lb01
+  os: ubuntu/bionic64
+  ip: 10.0.1.10
+  ram: 512
+  env: test
+  type: lb
+- name: demo-test-db01
+  os: ubuntu/bionic64
+  ip: 10.0.1.21
+  ram: 512
+  env: test
+  type: db

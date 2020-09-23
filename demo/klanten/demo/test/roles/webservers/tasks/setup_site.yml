@@ -1,0 +1,49 @@
+---
+- name: Set OS specific variables
+  include_vars: '{{ item }}'
+  with_first_found:
+    - '{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+    - '{{ ansible_distribution }}.yml'
+
+- name: Delete default page
+  file:
+    path: /var/www/html/index.html
+    state: absent
+
+- name: Copy dir config file
+  template:
+    src: dir.conf.j2
+    dest: '{{ apache_dir }}/mods-enabled/dir.conf'
+  notify: restart apache
+
+- name: Copy site config file
+  template:
+    src: site.conf.j2
+    dest: '{{ apache_dir }}/sites-available/000-default.conf'
+  notify: restart apache
+
+- name: Enable configuration
+  file:
+    src: '{{ apache_dir }}/sites-available/000-default.conf'
+    dest: '{{ apache_dir }}/sites-enabled/000-default.conf'
+    state: link
+  notify: restart apache
+
+- name: Delete html directory
+  when: apache_use_repo is defined
+  file:
+    path: /var/www/html
+    state: absent
+
+- name: Copy the code from repository
+  when: apache_use_repo is defined
+  git:
+    repo: '{{ apache_use_repo }}'
+    dest: /var/www/html
+
+- name: Copy index.php
+  when: apache_use_template
+  template:
+    src: index.php.j2
+    dest: /var/www/html/index.php
+    mode: 0644

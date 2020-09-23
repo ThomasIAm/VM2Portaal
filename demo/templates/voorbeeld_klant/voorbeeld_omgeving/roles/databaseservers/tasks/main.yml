@@ -1,0 +1,3 @@
+---
+- import_tasks: install_mysql.yml
+- import_tasks: setup_mysql.yml

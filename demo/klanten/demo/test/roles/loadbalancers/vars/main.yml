@@ -1,0 +1,33 @@
+---
+haproxy_enable_stats: true
+haproxy_stats_port: 8080
+haproxy_stats_uri: /stats
+haproxy_stats_refresh: 10s
+haproxy_stats_user: admin
+haproxy_stats_pass: !vault |
+  $ANSIBLE_VAULT;1.2;AES256;demo-test
+  64333132393536323130326336623930643433303433343466636431643361353861366632323831
+  3530373465336536366536613335306364633539633261630a663064323166346531313939616165
+  37346138366533336132333238306535646533613937316634626537333834613039656238623331
+  6235356261386537350a633139653735616638373065393335623062303034626137353436663134
+  3566
+haproxy_frontends:
+  - name: site
+    bind: '*'
+    port: 80
+    options: forwardfor
+    default_backend: webservers
+haproxy_backends:
+  - name: webservers
+    algorithm: roundrobin
+    servers:
+      - name: demo-test-web01
+        port: 80
+        options: check
+      - name: demo-test-web02
+        port: 80
+        options: check
+    extra_options: 'option httpchk'
+haproxy_ports_list:
+  - '80'
+  - '8080'

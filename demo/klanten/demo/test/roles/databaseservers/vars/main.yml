@@ -1,0 +1,11 @@
+---
+mysql_use_dump: true
+mysql_db_file: 'test.sql'
+mysql_non_root_user_hosts:
+  - '10.0.1.11'
+  - '10.0.1.12'
+  - 'localhost'
+  - '127.0.0.1'
+  - '::1'
+mysql_bind_addr: 0.0.0.0
+mysql_non_root_user_privs: 'vm2.test:SELECT'

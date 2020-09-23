@@ -1,0 +1,41 @@
+---
+- name: Add ufw rule for ssh
+  ufw:
+    rule: allow
+    port: '22'
+
+- name: Enable ufw
+  when: firewall
+  ufw:
+    state: enabled
+
+- name: Disable ufw
+  when: not firewall
+  ufw:
+    state: disabled
+
+- name: Install ntp
+  when: custom_ntp
+  apt:
+    name: ntp
+    state: present
+    update_cache: yes
+  tags: ntp
+
+- name: Determine if timesyncd is enabled
+  register: timesyncdstatus
+  command: timedatectl status
+  changed_when: false
+
+- name: Disable timesyncd
+  command: timedatectl set-ntp off
+  when: "'systemd-timesyncd.service active: yes' in timesyncdstatus.stdout and
+    custom_ntp"
+
+- name: Configure ntp file
+  when: custom_ntp
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+  tags: ntp
+  notify: restart ntp
